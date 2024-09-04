@@ -8,6 +8,7 @@ import {
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Profile from "./pages/Profile";
 
 const App = () => {
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -56,6 +57,10 @@ const App = () => {
 							<Register onRegister={() => setIsAuthenticated(true)} />
 						)
 					}
+				/>
+				<Route
+					path="/profile"
+					element={isAuthenticated ? <Profile /> : <Navigate to="/login" />}
 				/>
 			</Routes>
 		</Router>
