@@ -9,7 +9,7 @@ const EmployerProfile = require("../models/EmployerProfile");
 // @route    POST /api/tasks
 // @desc     Post a task (employers only)
 // @access   Private
-router.post("/", auth, async (req, res) => {
+router.post("/createTask", auth, async (req, res) => {
 	try {
 		// Get the user by ID
 		const user = await User.findById(req.user.id);
@@ -48,9 +48,20 @@ router.post("/", auth, async (req, res) => {
 });
 
 // GET /api/tasks (Get all tasks for an employer)
-router.get("/", auth, async (req, res) => {
+router.get("/myTasks", auth, async (req, res) => {
 	try {
 		const tasks = await Task.find({ postedBy: req.user.id });
+		res.json(tasks);
+	} catch (err) {
+		console.error(err.message);
+		res.status(500).send("Server error");
+	}
+});
+
+// GET /api/tasks (Get all tasks)
+router.get("/", async (req, res) => {
+	try {
+		const tasks = await Task.find({});
 		res.json(tasks);
 	} catch (err) {
 		console.error(err.message);
@@ -76,7 +87,7 @@ router.get("/:id", auth, async (req, res) => {
 });
 
 // Update a task (PUT)
-router.put("/:id", auth, async (req, res) => {
+router.put("/update/:id", auth, async (req, res) => {
 	try {
 		const { title, description, deadline } = req.body;
 		let task = await Task.findById(req.params.id);

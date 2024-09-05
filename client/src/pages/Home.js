@@ -11,15 +11,12 @@ const Home = ({ setIsAuthenticated }) => {
 		navigate("/login");
 	};
 
-	const goToProfile = () => {
-		navigate("/profile");
-	};
-
 	return (
 		<div>
 			<h1>Welcome to the Task-Based Job Portal!</h1>
 			<button onClick={handleLogout}>Logout</button>
-			<button onClick={goToProfile}>Go to Profile</button>
+			<button onClick={() => navigate("/profile")}>Go to Profile</button>
+			<button onClick={() => navigate("/tasks")}>View Tasks</button>
 		</div>
 	);
 };

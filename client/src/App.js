@@ -12,6 +12,11 @@ import Register from "./pages/Register";
 import CandidateProfile from "./pages/CandidateProfile";
 import EmployerProfile from "./pages/EmployerProfile";
 import axios from "axios";
+import TaskManagement from "./pages/TaskManagement";
+import TaskList from "./pages/TaskList";
+import TaskDetail from "./pages/TaskDetail";
+import SubmissionList from "./pages/SubmissionList";
+import SubmissionView from "./pages/SubmissionView";
 
 const App = () => {
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -78,6 +83,11 @@ const App = () => {
 						)
 					}
 				/>
+				<Route path="/myTasks" element={<TaskManagement />} />
+				<Route path="/tasks" element={<TaskList />} />
+				<Route path="/tasks/:id" element={<TaskDetail />} />
+				<Route path="/my-submissions" element={<SubmissionList />} />
+				<Route path="/submission/:id" element={<SubmissionView />} />
 			</Routes>
 		</Router>
 	);

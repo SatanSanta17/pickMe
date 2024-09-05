@@ -1,9 +1,12 @@
 // src/pages/CandidateProfile.js
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const CandidateProfile = () => {
 	const [profile, setProfile] = useState(null);
+	const [submissions, setSubmissions] = useState(null);
+	const navigate = useNavigate();
 
 	useEffect(() => {
 		const fetchProfile = async () => {
@@ -17,7 +20,9 @@ const CandidateProfile = () => {
 						},
 					}
 				);
-				setProfile(response.data);
+				console.log(response.data);
+				setProfile(response.data.profile);
+				setSubmissions(response.data.submissions);
 			} catch (error) {
 				console.error("Error fetching candidate profile", error);
 			}
@@ -41,11 +46,15 @@ const CandidateProfile = () => {
 							"Not uploaded"
 						)}
 					</p>
-					<p>Tasks Applied: {profile.appliedTasks?.length}</p>
+
+					<button onClick={() => navigate("/my-submissions")}>
+						View My Submissions
+					</button>
+					<p>Tasks Submitted: {submissions?.length}</p>
 					{/* Show task list */}
 					<ul>
-						{profile.appliedTasks?.map((task) => (
-							<li key={task._id}>{task.title}</li>
+						{submissions?.map((submission) => (
+							<li key={submission.task._id}>{submission.task.title}</li>
 						))}
 					</ul>
 				</div>

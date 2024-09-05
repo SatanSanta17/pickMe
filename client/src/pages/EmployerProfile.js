@@ -1,10 +1,12 @@
 // src/pages/EmployerProfile.js
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const EmployerProfile = () => {
 	const [profile, setProfile] = useState(null);
 	const [tasks, setTasks] = useState(null);
+	const navigate = useNavigate();
 
 	useEffect(() => {
 		const fetchProfile = async () => {
@@ -26,11 +28,14 @@ const EmployerProfile = () => {
 		const fetchTasks = async () => {
 			try {
 				const token = localStorage.getItem("token");
-				const response = await axios.get("http://localhost:5000/api/tasks/", {
-					headers: {
-						"x-auth-token": token,
-					},
-				});
+				const response = await axios.get(
+					"http://localhost:5000/api/tasks/myTasks",
+					{
+						headers: {
+							"x-auth-token": token,
+						},
+					}
+				);
 				setTasks(response.data);
 			} catch (error) {
 				console.error("Error fetching employer profile", error);
@@ -49,6 +54,8 @@ const EmployerProfile = () => {
 					<p>Name: {profile.user.name}</p>
 					<p>Email: {profile.user.email}</p>
 					<p>Company: {profile.company}</p>
+					{/* Button to navigate to Task Management Page */}
+					<button onClick={() => navigate("/myTasks")}>View My Tasks</button>
 					<p>Tasks Posted: {profile.postedTasks?.length}</p>
 					{/* Show task list */}
 					<ul>

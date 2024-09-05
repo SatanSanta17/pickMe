@@ -22,12 +22,10 @@ const TaskSchema = new mongoose.Schema({
 		type: Date,
 		default: Date.now,
 	},
-	applications: [
-		{
-			type: mongoose.Schema.Types.ObjectId,
-			ref: "Application",
-		},
-	],
+	submissions: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: "Submission",
+	},
 });
 
 module.exports = mongoose.model("Task", TaskSchema);

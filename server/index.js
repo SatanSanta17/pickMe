@@ -17,7 +17,7 @@ app.use("/api/auth", require("./routes/auth"));
 app.use("/api/candidateProfile", require("./routes/candidateProfile"));
 app.use("/api/employerProfile", require("./routes/employerProfile"));
 app.use("/api/tasks", require("./routes/task"));
-// app.use("/api/applications", require("./routes/application"));
+app.use("/api/submission", require("./routes/submission"));
 
 // Start Server
 const PORT = process.env.PORT || 5000;
