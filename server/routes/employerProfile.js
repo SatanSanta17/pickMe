@@ -1,18 +1,17 @@
-// routes/candidateProfile.js
+// routes/employerProfile.js
 
 const express = require("express");
 const router = express.Router();
 const auth = require("../middleware/authMiddleware");
-const CandidateProfile = require("../models/CandidateProfile");
+const EmployerProfile = require("../models/EmployerProfile");
 const User = require("../models/User");
 
-// @route    GET /api/candidateProfile/me
-// @desc     Get current candidate's profile
+// @route    GET /api/employerProfile/me
+// @desc     Get current employer's profile
 // @access   Private
 router.get("/me", auth, async (req, res) => {
 	try {
-		console.log("USER ID:", req.user.id); // Log user ID
-		const profile = await CandidateProfile.findOne({
+		const profile = await EmployerProfile.findOne({
 			user: req.user.id,
 		}).populate("user", ["name", "email"]);
 		if (!profile) {
@@ -25,26 +24,25 @@ router.get("/me", auth, async (req, res) => {
 	}
 });
 
-// @route    POST /api/candidateProfile
-// @desc     Create or update candidate profile
+// @route    POST /api/employerProfile
+// @desc     Create or update employer profile
 // @access   Private
 router.post("/", auth, async (req, res) => {
-	const { phone, profilePicture, resume } = req.body;
+	const { companyName, companyLogo } = req.body;
 
 	// Build profile object
 	const profileFields = {
 		user: req.user.id,
-		phone,
-		profilePicture,
-		resume,
+		companyName,
+		companyLogo,
 	};
 
 	try {
-		let profile = await CandidateProfile.findOne({ user: req.user.id });
+		let profile = await EmployerProfile.findOne({ user: req.user.id });
 
 		if (profile) {
 			// Update
-			profile = await CandidateProfile.findOneAndUpdate(
+			profile = await EmployerProfile.findOneAndUpdate(
 				{ user: req.user.id },
 				{ $set: profileFields },
 				{ new: true }
@@ -53,7 +51,7 @@ router.post("/", auth, async (req, res) => {
 		}
 
 		// Create
-		profile = new CandidateProfile(profileFields);
+		profile = new EmployerProfile(profileFields);
 		await profile.save();
 		res.json(profile);
 	} catch (err) {

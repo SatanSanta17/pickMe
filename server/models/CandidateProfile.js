@@ -1,3 +1,5 @@
+// models/CandidateProfile.js
+
 const mongoose = require("mongoose");
 
 const CandidateProfileSchema = new mongoose.Schema({
@@ -6,23 +8,37 @@ const CandidateProfileSchema = new mongoose.Schema({
 		ref: "User",
 		required: true,
 	},
+	phone: {
+		type: String,
+	},
 	profilePicture: {
-		type: String, // URL or file path to the profile picture
+		type: String,
 	},
 	resume: {
-		type: String, // URL or file path to the resume
+		type: String, // URL to the resume file
 	},
 	completedTasks: [
 		{
-			title: { type: String },
-			description: { type: String },
-			completedAt: { type: Date, default: Date.now },
+			task: {
+				type: mongoose.Schema.Types.ObjectId,
+				ref: "Task",
+			},
+			completionDate: {
+				type: Date,
+			},
 		},
 	],
 	applications: [
 		{
-			jobId: { type: mongoose.Schema.Types.ObjectId, ref: "Job" },
-			status: { type: String, default: "Applied" }, // Could be "Applied", "Under Review", etc.
+			task: {
+				type: mongoose.Schema.Types.ObjectId,
+				ref: "Task",
+			},
+			status: {
+				type: String,
+				enum: ["pending", "reviewed", "rejected", "accepted"],
+				default: "pending",
+			},
 		},
 	],
 });

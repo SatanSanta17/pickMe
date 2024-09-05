@@ -20,6 +20,7 @@ router.post(
 			"password",
 			"Please enter a password with 6 or more characters"
 		).isLength({ min: 6 }),
+		check("role", "Role is required").isIn(["candidate", "employer"]), // Validate role
 	],
 	async (req, res) => {
 		const errors = validationResult(req);
@@ -27,7 +28,7 @@ router.post(
 			return res.status(400).json({ errors: errors.array() });
 		}
 
-		const { name, email, password } = req.body;
+		const { name, email, password, role } = req.body;
 		console.log("REGISTER REQUEST: ", req.body);
 
 		try {
@@ -42,6 +43,7 @@ router.post(
 				name,
 				email,
 				password,
+				role,
 			});
 
 			// Hash the password before saving
@@ -54,6 +56,7 @@ router.post(
 			const payload = {
 				user: {
 					id: user.id,
+					role: user.role, // Include role in the JWT payload
 				},
 			};
 
