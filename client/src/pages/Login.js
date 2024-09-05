@@ -1,51 +1,58 @@
+// src/pages/Login.js
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const Login = ({ setIsAuthenticated }) => {
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
+	const [formData, setFormData] = useState({
+		email: "",
+		password: "",
+	});
+	const { email, password } = formData;
 	const navigate = useNavigate();
 
-	const handleLogin = async (e) => {
+	const handleChange = (e) => {
+		setFormData({
+			...formData,
+			[e.target.name]: e.target.value,
+		});
+	};
+
+	const handleSubmit = async (e) => {
 		e.preventDefault();
 		try {
 			const response = await axios.post(
-				"http://localhost:5000/api/users/login",
-				{ email, password }
+				"http://localhost:5000/api/auth/login",
+				formData
 			);
-			console.log("RESPONSE: ", response);
-			// Access the token and user from the response
-			if (response && response.data) {
-				const { token, user } = response.data;
-				localStorage.setItem("token", token); // Save token to local storage
-				console.log("Navigating to Home"); // Debugging
-				navigate("/"); // Redirect to home page
-			} else {
-				console.error("Unexpected response structure:", response);
-			}
-			setIsAuthenticated(true);
+			console.log("Login response: ", response);
+			const { token } = response.data;
+			console.log("TOKEN:", token);
+			localStorage.setItem("token", token); // Save token to local storage
+			setIsAuthenticated(true); // Set auth status to true
+			navigate("/"); // Navigate to home after successful login
 		} catch (error) {
-			console.error(error.response.data);
-			// Handle login error
+			console.error("Login error: ", error.response.data);
 		}
 	};
 
 	return (
-		<form onSubmit={handleLogin}>
+		<form onSubmit={handleSubmit}>
 			<h2>Login</h2>
 			<input
 				type="email"
+				name="email"
 				placeholder="Email"
 				value={email}
-				onChange={(e) => setEmail(e.target.value)}
+				onChange={handleChange}
 				required
 			/>
 			<input
 				type="password"
+				name="password"
 				placeholder="Password"
 				value={password}
-				onChange={(e) => setPassword(e.target.value)}
+				onChange={handleChange}
 				required
 			/>
 			<button type="submit">Login</button>

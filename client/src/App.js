@@ -1,3 +1,4 @@
+// src/App.js
 import React, { useState, useEffect } from "react";
 import {
 	BrowserRouter as Router,
@@ -8,22 +9,33 @@ import {
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Profile from "./pages/Profile";
+import CandidateProfile from "./pages/CandidateProfile";
+import EmployerProfile from "./pages/EmployerProfile";
+import axios from "axios";
 
 const App = () => {
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
+	const [userRole, setUserRole] = useState(null);
 
 	useEffect(() => {
 		const token = localStorage.getItem("token");
 		if (token) {
 			setIsAuthenticated(true);
+			// Fetch user role from backend
+			axios
+				.get("http://localhost:5000/api/auth/user", {
+					headers: {
+						"x-auth-token": token,
+					},
+				})
+				.then((response) => {
+					setUserRole(response.data.role);
+				})
+				.catch((error) => {
+					console.error("Error fetching user role", error);
+				});
 		}
-	}, [isAuthenticated]);
-
-	const handleLogout = () => {
-		localStorage.removeItem("token");
-		setIsAuthenticated(false); // Update authentication state
-	};
+	}, []);
 
 	return (
 		<Router>
@@ -32,7 +44,7 @@ const App = () => {
 					path="/"
 					element={
 						isAuthenticated ? (
-							<Home onLogout={handleLogout} />
+							<Home setIsAuthenticated={setIsAuthenticated} />
 						) : (
 							<Navigate to="/login" />
 						)
@@ -50,17 +62,21 @@ const App = () => {
 				/>
 				<Route
 					path="/register"
-					element={
-						isAuthenticated ? (
-							<Navigate to="/" />
-						) : (
-							<Register onRegister={() => setIsAuthenticated(true)} />
-						)
-					}
+					element={isAuthenticated ? <Navigate to="/" /> : <Register />}
 				/>
 				<Route
 					path="/profile"
-					element={isAuthenticated ? <Profile /> : <Navigate to="/login" />}
+					element={
+						isAuthenticated ? (
+							userRole === "candidate" ? (
+								<CandidateProfile />
+							) : (
+								<EmployerProfile />
+							)
+						) : (
+							<Navigate to="/login" />
+						)
+					}
 				/>
 			</Routes>
 		</Router>
