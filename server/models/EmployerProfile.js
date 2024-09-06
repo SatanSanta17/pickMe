@@ -10,11 +10,9 @@ const EmployerProfileSchema = new mongoose.Schema({
 	},
 	phone: {
 		type: String,
-		required: true,
 	},
 	companyName: {
 		type: String,
-		required: true,
 	},
 	companyLogo: {
 		type: String, // URL to the logo image

@@ -18,6 +18,7 @@ import TaskDetail from "./pages/taskPages/TaskDetail";
 import SubmissionList from "./pages/profilePages/candidatePages/SubmissionList";
 import SubmissionView from "./pages/submissionPages/SubmissionView";
 import TaskSubmissions from "./pages/profilePages/employerPages/TaskSubmissions";
+import ProfileCompletion from "./pages/ProfileCompletion";
 
 const App = () => {
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -86,6 +87,7 @@ const App = () => {
 								)
 							}
 						/>
+						<Route path="/profile-completion" element={<ProfileCompletion />} />
 						<Route path="/myTasks" element={<TaskManagement />} />
 						<Route path="/tasks" element={<TaskList />} />
 						<Route path="/tasks/:id" element={<TaskDetail />} />

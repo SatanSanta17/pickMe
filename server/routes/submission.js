@@ -139,7 +139,7 @@ router.get("/fetchAll", async (req, res) => {
 	}
 });
 
-// GET /api/tasks (Get all tasks for an employer)
+// GET /api/submission (Get all submission for a candidate)
 router.get("/fetchMySubmissions", auth, async (req, res) => {
 	try {
 		const submissions = await Submission.find({
@@ -152,7 +152,7 @@ router.get("/fetchMySubmissions", auth, async (req, res) => {
 	}
 });
 
-// GET /api/tasks (Get all tasks for an employer)
+// GET /api/submission (Get all submission for a Task)
 router.get("/fetchTaskSubmissions/:id", auth, async (req, res) => {
 	try {
 		const submissions = await Submission.find({ task: req.params.id }).populate(

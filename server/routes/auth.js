@@ -56,13 +56,12 @@ router.post(
 			const payload = {
 				user: {
 					id: user.id,
-					role: user.role, // Include role in the JWT payload
 				},
 			};
 
 			jwt.sign(payload, jwtSecret, { expiresIn: "1h" }, (err, token) => {
 				if (err) throw err;
-				res.json({ token });
+				res.json({ token, user });
 			});
 		} catch (err) {
 			console.error(err.message);
@@ -124,8 +123,11 @@ router.post(
 // @access  Private
 router.get("/user", auth, async (req, res) => {
 	try {
-		const user = await User.findById(req.user.id).select("-password");
-		res.json(user);
+		const user = await User.findById(req.user.id); // Fetch user role from DB
+		if (!user) {
+			return res.status(404).json({ msg: "User not found" });
+		}
+		res.json(user); // Return user with role
 	} catch (err) {
 		console.error(err.message);
 		res.status(500).send("Server error");

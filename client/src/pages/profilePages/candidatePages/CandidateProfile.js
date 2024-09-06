@@ -7,25 +7,24 @@ const CandidateProfile = () => {
 	const [profile, setProfile] = useState(null);
 	const navigate = useNavigate();
 
+	const fetchProfile = async () => {
+		try {
+			const token = localStorage.getItem("token");
+			const response = await axios.get(
+				`http://localhost:5000/api/profile/fetch/candidate`,
+				{
+					headers: {
+						"x-auth-token": token,
+					},
+				}
+			);
+			console.log(response.data);
+			setProfile(response.data.profile);
+		} catch (error) {
+			console.error("Error fetching candidate profile", error);
+		}
+	};
 	useEffect(() => {
-		const fetchProfile = async () => {
-			try {
-				const token = localStorage.getItem("token");
-				const response = await axios.get(
-					"http://localhost:5000/api/candidateProfile/fetch",
-					{
-						headers: {
-							"x-auth-token": token,
-						},
-					}
-				);
-				console.log(response.data);
-				setProfile(response.data.profile);
-			} catch (error) {
-				console.error("Error fetching candidate profile", error);
-			}
-		};
-
 		fetchProfile();
 	}, []);
 

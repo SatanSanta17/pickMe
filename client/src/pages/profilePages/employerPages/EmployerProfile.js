@@ -12,7 +12,7 @@ const EmployerProfile = () => {
 			try {
 				const token = localStorage.getItem("token");
 				const response = await axios.get(
-					"http://localhost:5000/api/employerProfile/fetch",
+					"http://localhost:5000/api/profile/fetch/employer",
 					{
 						headers: {
 							"x-auth-token": token,

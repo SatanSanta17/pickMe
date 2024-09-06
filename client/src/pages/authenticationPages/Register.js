@@ -27,8 +27,12 @@ const Register = () => {
 				"http://localhost:5000/api/auth/register",
 				formData
 			);
-			console.log("Register response: ", response);
-			navigate("/login"); // Redirect to login after successful registration
+			console.log("REGISTER RESPONSE: ", response);
+			const { token } = response.data;
+			console.log("TOKEN:", token);
+			localStorage.setItem("token", token); // Save token to local storage
+			// setIsAuthenticated(true); // Set auth status to true
+			navigate("/profile-completion"); // Redirect to login after successful registration
 		} catch (error) {
 			console.error("Error registering user: ", error.response.data);
 		}

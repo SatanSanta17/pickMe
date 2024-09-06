@@ -35,7 +35,7 @@ const Login = ({ setIsAuthenticated }) => {
 				"http://localhost:5000/api/auth/login",
 				formData
 			);
-			console.log("Login response: ", response);
+			console.log("LOGIN RESPONSE: ", response.data);
 			const { token } = response.data;
 			console.log("TOKEN:", token);
 			localStorage.setItem("token", token); // Save token to local storage

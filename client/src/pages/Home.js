@@ -5,30 +5,28 @@ const Home = ({ setIsAuthenticated }) => {
 	const [user, setUser] = useState(null); // State to hold user data
 	const navigate = useNavigate();
 
+	const fetchUserData = async () => {
+		const token = localStorage.getItem("token");
+		// Make sure the token exists before making a request
+		if (token) {
+			try {
+				const response = await fetch("http://localhost:5000/api/auth/user", {
+					method: "GET",
+					headers: {
+						"Content-Type": "application/json",
+						"x-auth-token": token,
+					},
+				});
+				const userData = await response.json();
+				console.log(userData);
+				setUser(userData);
+			} catch (err) {
+				console.error("Error fetching user data", err);
+			}
+		}
+	};
 	// Fetch user data when the component mounts
 	useEffect(() => {
-		const fetchUserData = async () => {
-			const token = localStorage.getItem("token");
-
-			// Make sure the token exists before making a request
-			if (token) {
-				try {
-					const response = await fetch("http://localhost:5000/api/auth/user", {
-						method: "GET",
-						headers: {
-							"Content-Type": "application/json",
-							"x-auth-token": token,
-						},
-					});
-
-					const userData = await response.json();
-					setUser(userData);
-				} catch (err) {
-					console.error("Error fetching user data", err);
-				}
-			}
-		};
-
 		fetchUserData();
 	}, []);
 
