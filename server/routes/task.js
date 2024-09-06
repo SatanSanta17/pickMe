@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const auth = require("../middleware/authMiddleware");
 const Task = require("../models/Task");
-// const Application = require("../models/Application");
 const User = require("../models/User");
 const EmployerProfile = require("../models/EmployerProfile");
 
@@ -24,19 +23,18 @@ router.post("/createTask", auth, async (req, res) => {
 		}
 
 		const { title, description, deadline } = req.body;
-		const postedBy = req.user.id;
 
 		const task = new Task({
 			title,
 			description,
 			deadline,
-			postedBy,
+			postedBy: user._id,
 		});
 		await task.save();
 
 		// Find the associated EmployerProfile and update it
 		await EmployerProfile.findOneAndUpdate(
-			{ user: postedBy },
+			{ user: task.postedBy },
 			{ $push: { postedTasks: task._id } }
 		);
 
@@ -47,35 +45,10 @@ router.post("/createTask", auth, async (req, res) => {
 	}
 });
 
-// GET /api/tasks (Get all tasks for an employer)
-router.get("/myTasks", auth, async (req, res) => {
-	try {
-		const tasks = await Task.find({ postedBy: req.user.id });
-		res.json(tasks);
-	} catch (err) {
-		console.error(err.message);
-		res.status(500).send("Server error");
-	}
-});
-
-// GET /api/tasks (Get all tasks)
-router.get("/", async (req, res) => {
-	try {
-		const tasks = await Task.find({});
-		res.json(tasks);
-	} catch (err) {
-		console.error(err.message);
-		res.status(500).send("Server error");
-	}
-});
-
 // GET /api/tasks/:id (Get details of a specific task)
-router.get("/:id", auth, async (req, res) => {
+router.get("/fetch/:id", auth, async (req, res) => {
 	try {
-		const task = await Task.findById(req.params.id).populate(
-			"postedBy",
-			"name"
-		);
+		const task = await Task.findById(req.params.id);
 		if (!task) {
 			return res.status(404).json({ message: "Task not found" });
 		}
@@ -89,7 +62,7 @@ router.get("/:id", auth, async (req, res) => {
 // Update a task (PUT)
 router.put("/update/:id", auth, async (req, res) => {
 	try {
-		const { title, description, deadline } = req.body;
+		const { title, description, deadline, status } = req.body;
 		let task = await Task.findById(req.params.id);
 
 		if (!task) {
@@ -101,11 +74,13 @@ router.put("/update/:id", auth, async (req, res) => {
 			return res.status(401).json({ msg: "User not authorized" });
 		}
 
-		task.title = title || task.title;
-		task.description = description || task.description;
-		task.deadline = deadline || task.deadline;
+		// Update the task with the new values using findByIdAndUpdate
+		task = await Task.findByIdAndUpdate(
+			req.params.id,
+			{ $set: { title, description, deadline, status } }, // Update fields
+			{ new: true, omitUndefined: true } // Return the updated document
+		);
 
-		await task.save();
 		res.json(task);
 	} catch (err) {
 		console.error(err.message);
@@ -114,7 +89,7 @@ router.put("/update/:id", auth, async (req, res) => {
 });
 
 // Delete a task (DELETE)
-router.delete("/:id", auth, async (req, res) => {
+router.delete("/delete/:id", auth, async (req, res) => {
 	try {
 		const task = await Task.findById(req.params.id);
 
@@ -129,12 +104,34 @@ router.delete("/:id", auth, async (req, res) => {
 
 		// Find the associated EmployerProfile and update it
 		await EmployerProfile.findOneAndUpdate(
-			{ user: postedBy },
+			{ user: task.postedBy },
 			{ $pull: { postedTasks: task._id } }
 		);
 
-		await task.remove();
+		await Task.findByIdAndDelete(task._id);
 		res.json({ msg: "Task removed" });
+	} catch (err) {
+		console.error(err.message);
+		res.status(500).send("Server error");
+	}
+});
+
+// GET /api/tasks (Get all tasks)
+router.get("/fetchAll", async (req, res) => {
+	try {
+		const tasks = await Task.find({});
+		res.json(tasks);
+	} catch (err) {
+		console.error(err.message);
+		res.status(500).send("Server error");
+	}
+});
+
+// GET /api/tasks (Get all tasks for an employer)
+router.get("/fetchMyTasks", auth, async (req, res) => {
+	try {
+		const tasks = await Task.find({ postedBy: req.user.id });
+		res.json(tasks);
 	} catch (err) {
 		console.error(err.message);
 		res.status(500).send("Server error");

@@ -17,6 +17,7 @@ import TaskList from "./pages/TaskList";
 import TaskDetail from "./pages/TaskDetail";
 import SubmissionList from "./pages/SubmissionList";
 import SubmissionView from "./pages/SubmissionView";
+import TaskSubmissions from "./pages/TaskSubmissions";
 
 const App = () => {
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -88,6 +89,7 @@ const App = () => {
 				<Route path="/tasks/:id" element={<TaskDetail />} />
 				<Route path="/my-submissions" element={<SubmissionList />} />
 				<Route path="/submission/:id" element={<SubmissionView />} />
+				<Route path="/task/submissions/:id" element={<TaskSubmissions />} />
 			</Routes>
 		</Router>
 	);

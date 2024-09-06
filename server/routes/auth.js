@@ -6,7 +6,7 @@ const config = require("config");
 const jwtSecret = config.get("jwtSecret");
 const { check, validationResult } = require("express-validator");
 const User = require("../models/User");
-const authMiddleware = require("../middleware/authMiddleware");
+const auth = require("../middleware/authMiddleware");
 
 // @route   POST /api/auth/register
 // @desc    Register a new user
@@ -122,7 +122,7 @@ router.post(
 // @route   GET /api/auth/user
 // @desc    Get logged in user details
 // @access  Private
-router.get("/user", authMiddleware, async (req, res) => {
+router.get("/user", auth, async (req, res) => {
 	try {
 		const user = await User.findById(req.user.id).select("-password");
 		res.json(user);

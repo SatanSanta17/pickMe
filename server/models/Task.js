@@ -22,10 +22,19 @@ const TaskSchema = new mongoose.Schema({
 		type: Date,
 		default: Date.now,
 	},
-	submissions: {
-		type: mongoose.Schema.Types.ObjectId,
-		ref: "Submission",
+	status: {
+		type: String,
+		enum: ["open", "close"], // Define the allowed roles
+		default: "open", // Default role is candidate
 	},
+	submissions: [
+		{
+			submission: {
+				type: mongoose.Schema.Types.ObjectId,
+				ref: "Submission",
+			},
+		},
+	],
 });
 
 module.exports = mongoose.model("Task", TaskSchema);

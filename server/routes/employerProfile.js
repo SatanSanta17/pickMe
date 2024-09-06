@@ -4,12 +4,12 @@ const express = require("express");
 const router = express.Router();
 const auth = require("../middleware/authMiddleware");
 const EmployerProfile = require("../models/EmployerProfile");
-const User = require("../models/User");
+const Task = require("../models/Task");
 
 // @route    GET /api/employerProfile/me
 // @desc     Get current employer's profile
 // @access   Private
-router.get("/me", auth, async (req, res) => {
+router.get("/fetch", auth, async (req, res) => {
 	try {
 		const profile = await EmployerProfile.findOne({
 			user: req.user.id,
@@ -17,7 +17,13 @@ router.get("/me", auth, async (req, res) => {
 		if (!profile) {
 			return res.status(400).json({ msg: "There is no profile for this user" });
 		}
-		res.json(profile);
+
+		// Fetch Tasks made by the employer
+		const tasks = await Task.find({
+			postedBy: req.user.id,
+		}).populate("submissions", ["submittedBy", "solution", "submittedAt"]);
+
+		res.json({ profile, tasks });
 	} catch (err) {
 		console.error(err.message);
 		res.status(500).send("Server error");
@@ -27,7 +33,7 @@ router.get("/me", auth, async (req, res) => {
 // @route    POST /api/employerProfile
 // @desc     Create or update employer profile
 // @access   Private
-router.post("/", auth, async (req, res) => {
+router.post("/update", auth, async (req, res) => {
 	const { companyName, companyLogo } = req.body;
 
 	// Build profile object

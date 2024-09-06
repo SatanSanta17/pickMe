@@ -17,27 +17,11 @@ const CandidateProfileSchema = new mongoose.Schema({
 	resume: {
 		type: String, // URL to the resume file
 	},
-	completedTasks: [
+	submissions: [
 		{
-			task: {
+			submission: {
 				type: mongoose.Schema.Types.ObjectId,
-				ref: "Task",
-			},
-			completionDate: {
-				type: Date,
-			},
-		},
-	],
-	applications: [
-		{
-			task: {
-				type: mongoose.Schema.Types.ObjectId,
-				ref: "Task",
-			},
-			status: {
-				type: String,
-				enum: ["pending", "reviewed", "rejected", "accepted"],
-				default: "pending",
+				ref: "Submission",
 			},
 		},
 	],

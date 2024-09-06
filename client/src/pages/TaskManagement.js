@@ -157,6 +157,9 @@ const TaskManagement = () => {
 						<h4>{task.title}</h4>
 						<p>{task.description}</p>
 						<p>Deadline: {new Date(task.deadline).toLocaleString()}</p>
+						<button onClick={() => navigate(`/task/submissions/${task._id}`)}>
+							View Submissions
+						</button>
 						<button onClick={() => handleEdit(task)}>Edit</button>
 						<button onClick={() => deleteTask(task._id)}>Delete</button>
 					</li>

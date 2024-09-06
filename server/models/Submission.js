@@ -11,13 +11,18 @@ const SubmissionSchema = new mongoose.Schema({
 		ref: "User",
 		required: true,
 	},
+	submittedAt: {
+		type: Date,
+		default: Date.now,
+	},
 	solution: {
 		type: String, // You can store a URL to a file or the solution text here
 		required: true,
 	},
-	submittedAt: {
-		type: Date,
-		default: Date.now,
+	status: {
+		type: String,
+		enum: ["pending", "reviewed", "rejected", "accepted"],
+		default: "pending",
 	},
 });
 

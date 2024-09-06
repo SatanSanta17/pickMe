@@ -9,7 +9,7 @@ const Submission = require("../models/Submission");
 // @route    GET /api/candidateProfile/me
 // @desc     Get current candidate's profile
 // @access   Private
-router.get("/me", auth, async (req, res) => {
+router.get("/fetch", auth, async (req, res) => {
 	try {
 		console.log("USER ID:", req.user.id); // Log user ID
 		const profile = await CandidateProfile.findOne({
@@ -21,7 +21,7 @@ router.get("/me", auth, async (req, res) => {
 
 		// Fetch submissions made by the candidate
 		const submissions = await Submission.find({
-			candidate: req.user.id,
+			submittedBy: req.user.id,
 		}).populate("task", ["title"]);
 
 		res.json({ profile, submissions });
@@ -34,7 +34,7 @@ router.get("/me", auth, async (req, res) => {
 // @route    POST /api/candidateProfile
 // @desc     Create or update candidate profile
 // @access   Private
-router.post("/", auth, async (req, res) => {
+router.post("/update", auth, async (req, res) => {
 	const { phone, profilePicture, resume } = req.body;
 
 	// Build profile object

@@ -20,30 +20,14 @@ const EmployerProfile = () => {
 						},
 					}
 				);
-				setProfile(response.data);
-			} catch (error) {
-				console.error("Error fetching employer profile", error);
-			}
-		};
-		const fetchTasks = async () => {
-			try {
-				const token = localStorage.getItem("token");
-				const response = await axios.get(
-					"http://localhost:5000/api/tasks/myTasks",
-					{
-						headers: {
-							"x-auth-token": token,
-						},
-					}
-				);
-				setTasks(response.data);
+				setProfile(response.data.profile);
+				setTasks(response.data.tasks);
 			} catch (error) {
 				console.error("Error fetching employer profile", error);
 			}
 		};
 
 		fetchProfile();
-		fetchTasks();
 	}, []);
 
 	return (
