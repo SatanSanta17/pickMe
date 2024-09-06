@@ -92,13 +92,13 @@ router.post(
 			// Check if the user exists
 			let user = await User.findOne({ email });
 			if (!user) {
-				return res.status(400).json({ msg: "Invalid Credentials" });
+				return res.status(400).json({ msg: "Email doesnt exists" });
 			}
 
 			// Compare the entered password with the hashed password in the database
 			const isMatch = await bcrypt.compare(password, user.password);
 			if (!isMatch) {
-				return res.status(400).json({ msg: "Invalid Credentials" });
+				return res.status(400).json({ msg: "Password Invalid" });
 			}
 
 			// Generate JWT token

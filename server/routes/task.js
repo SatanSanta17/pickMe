@@ -48,7 +48,11 @@ router.post("/createTask", auth, async (req, res) => {
 // GET /api/tasks/:id (Get details of a specific task)
 router.get("/fetch/:id", auth, async (req, res) => {
 	try {
-		const task = await Task.findById(req.params.id);
+		const task = await Task.findById(req.params.id).populate({
+			path: "submissions", // Access the submissions field inside Task
+			select: "solution submittedBy", // Select solution and candidate from Submission
+			populate: { path: "submittedBy", select: "name email" }, // Populate candidate info
+		});
 		if (!task) {
 			return res.status(404).json({ message: "Task not found" });
 		}
@@ -119,7 +123,11 @@ router.delete("/delete/:id", auth, async (req, res) => {
 // GET /api/tasks (Get all tasks)
 router.get("/fetchAll", async (req, res) => {
 	try {
-		const tasks = await Task.find({});
+		const tasks = await Task.find({}).populate({
+			path: "submissions", // Access the submissions field inside Task
+			select: "submittedBy", // Select solution and candidate from Submission
+			populate: { path: "submittedBy", select: "name email" }, // Populate candidate info
+		});
 		res.json(tasks);
 	} catch (err) {
 		console.error(err.message);
@@ -130,7 +138,11 @@ router.get("/fetchAll", async (req, res) => {
 // GET /api/tasks (Get all tasks for an employer)
 router.get("/fetchMyTasks", auth, async (req, res) => {
 	try {
-		const tasks = await Task.find({ postedBy: req.user.id });
+		const tasks = await Task.find({ postedBy: req.user.id }).populate({
+			path: "submissions", // Access the submissions field inside Task
+			select: "solution submittedBy", // Select solution and candidate from Submission
+			populate: { path: "submittedBy", select: "name email" }, // Populate candidate info
+		});
 		res.json(tasks);
 	} catch (err) {
 		console.error(err.message);

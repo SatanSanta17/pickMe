@@ -15,20 +15,6 @@ const TaskManagement = () => {
 	const navigate = useNavigate();
 	const token = localStorage.getItem("token");
 
-	const fetchTasks = async () => {
-		try {
-			const response = await axios.get(
-				"http://localhost:5000/api/tasks/myTasks",
-				{
-					headers: { "x-auth-token": token },
-				}
-			);
-			setTasks(response.data);
-		} catch (err) {
-			console.error("Error fetching tasks", err);
-		}
-	};
-
 	const createTask = async (e) => {
 		e.preventDefault();
 		try {
@@ -44,14 +30,18 @@ const TaskManagement = () => {
 		}
 	};
 
-	const deleteTask = async (taskId) => {
+	const fetchMyTasks = async () => {
 		try {
-			await axios.delete(`http://localhost:5000/api/tasks/${taskId}`, {
-				headers: { "x-auth-token": localStorage.getItem("token") },
-			});
-			setTasks(tasks.filter((task) => task._id !== taskId));
+			const response = await axios.get(
+				"http://localhost:5000/api/tasks/fetchMyTasks",
+				{
+					headers: { "x-auth-token": token },
+				}
+			);
+			console.log(response.data);
+			setTasks(response.data);
 		} catch (err) {
-			console.error("Error deleting task", err);
+			console.error("Error fetching tasks", err);
 		}
 	};
 
@@ -84,6 +74,17 @@ const TaskManagement = () => {
 		});
 	};
 
+	const deleteTask = async (taskId) => {
+		try {
+			await axios.delete(`http://localhost:5000/api/tasks/delete/${taskId}`, {
+				headers: { "x-auth-token": localStorage.getItem("token") },
+			});
+			setTasks(tasks.filter((task) => task._id !== taskId));
+		} catch (err) {
+			console.error("Error deleting task", err);
+		}
+	};
+
 	// Fetch user data including the role
 	const fetchUser = async () => {
 		try {
@@ -112,7 +113,7 @@ const TaskManagement = () => {
 			if (userRole === "candidate") {
 				navigate("/"); // Redirect candidates to home page
 			} else if (userRole === "employer") {
-				fetchTasks(); // Fetch tasks for employers
+				fetchMyTasks(); // Fetch tasks for employers
 			}
 		});
 	}, [userRole, navigate]);

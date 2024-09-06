@@ -8,7 +8,7 @@ const TaskList = () => {
 	// Fetch all tasks
 	const fetchTasks = async () => {
 		try {
-			const response = await fetch("http://localhost:5000/api/tasks", {
+			const response = await fetch("http://localhost:5000/api/tasks/fetchAll", {
 				method: "GET",
 				headers: {
 					"Content-Type": "application/json",

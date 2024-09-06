@@ -11,7 +11,7 @@ const SubmissionView = () => {
 			try {
 				const token = localStorage.getItem("token");
 				const response = await axios.get(
-					`http://localhost:5000/api/submission/${id}`,
+					`http://localhost:5000/api/submission/fetch/${id}`,
 					{
 						headers: { "x-auth-token": token },
 					}

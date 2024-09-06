@@ -9,13 +9,16 @@ const TaskDetail = () => {
 	// Fetch the task details
 	const fetchTask = async () => {
 		try {
-			const response = await fetch(`http://localhost:5000/api/tasks/${id}`, {
-				method: "GET",
-				headers: {
-					"Content-Type": "application/json",
-					"x-auth-token": localStorage.getItem("token"),
-				},
-			});
+			const response = await fetch(
+				`http://localhost:5000/api/tasks/fetch/${id}`,
+				{
+					method: "GET",
+					headers: {
+						"Content-Type": "application/json",
+						"x-auth-token": localStorage.getItem("token"),
+					},
+				}
+			);
 			const data = await response.json();
 			setTask(data);
 		} catch (error) {
@@ -30,17 +33,20 @@ const TaskDetail = () => {
 	// Handle solution submission
 	const submitSolution = async () => {
 		try {
-			const response = await fetch("http://localhost:5000/api/submission", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					"x-auth-token": localStorage.getItem("token"),
-				},
-				body: JSON.stringify({
-					taskId: task._id,
-					solution,
-				}),
-			});
+			const response = await fetch(
+				"http://localhost:5000/api/submission/submit",
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						"x-auth-token": localStorage.getItem("token"),
+					},
+					body: JSON.stringify({
+						taskId: task._id,
+						solution,
+					}),
+				}
+			);
 
 			if (response.ok) {
 				alert("Solution submitted successfully!");

@@ -8,6 +8,10 @@ const EmployerProfileSchema = new mongoose.Schema({
 		ref: "User",
 		required: true,
 	},
+	phone: {
+		type: String,
+		required: true,
+	},
 	companyName: {
 		type: String,
 		required: true,
@@ -17,10 +21,8 @@ const EmployerProfileSchema = new mongoose.Schema({
 	},
 	postedTasks: [
 		{
-			task: {
-				type: mongoose.Schema.Types.ObjectId,
-				ref: "Task",
-			},
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "Task",
 		},
 	],
 });

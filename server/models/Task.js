@@ -29,10 +29,8 @@ const TaskSchema = new mongoose.Schema({
 	},
 	submissions: [
 		{
-			submission: {
-				type: mongoose.Schema.Types.ObjectId,
-				ref: "Submission",
-			},
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "Submission", // Ensure that Submission model is referenced correctly
 		},
 	],
 });

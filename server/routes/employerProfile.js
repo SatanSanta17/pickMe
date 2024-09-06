@@ -13,17 +13,20 @@ router.get("/fetch", auth, async (req, res) => {
 	try {
 		const profile = await EmployerProfile.findOne({
 			user: req.user.id,
-		}).populate("user", ["name", "email"]);
+		})
+			.populate("user")
+			.populate({
+				path: "postedTasks", // Populate the task field inside postedTasks
+				populate: {
+					path: "submissions", // Access the submissions field inside Task
+					populate: { path: "submittedBy" }, // Populate candidate info
+				},
+			});
 		if (!profile) {
 			return res.status(400).json({ msg: "There is no profile for this user" });
 		}
 
-		// Fetch Tasks made by the employer
-		const tasks = await Task.find({
-			postedBy: req.user.id,
-		}).populate("submissions", ["submittedBy", "solution", "submittedAt"]);
-
-		res.json({ profile, tasks });
+		res.json({ profile });
 	} catch (err) {
 		console.error(err.message);
 		res.status(500).send("Server error");

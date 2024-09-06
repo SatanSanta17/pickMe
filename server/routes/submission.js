@@ -32,7 +32,7 @@ router.post(
 
 			// Find the associated Task and update it
 			await Task.findOneAndUpdate(
-				{ user: req.user.id },
+				{ _id: taskId },
 				{ $push: { submissions: submission._id } }
 			);
 
@@ -53,7 +53,9 @@ router.post(
 // Route to get a specific submission by ID
 router.get("/fetch/:id", auth, async (req, res) => {
 	try {
-		const submission = await Submission.findById(req.params.id);
+		const submission = await Submission.findById(req.params.id).populate(
+			"task"
+		);
 		if (!submission) {
 			return res.status(404).json({ msg: "Submission not found" });
 		}
@@ -96,7 +98,7 @@ router.put("/update/:id", auth, async (req, res) => {
 // Delete a submission (DELETE)
 router.delete("/delete/:id", auth, async (req, res) => {
 	try {
-		const submission = await Task.findById(req.params.id);
+		const submission = await Submission.findById(req.params.id);
 
 		if (!submission) {
 			return res.status(404).json({ msg: "Submission not found" });
@@ -109,7 +111,7 @@ router.delete("/delete/:id", auth, async (req, res) => {
 
 		// Find the associated Task and update it
 		await Task.findOneAndUpdate(
-			{ user: req.user.id },
+			{ _id: submission.task },
 			{ $pull: { submissions: submission._id } }
 		);
 
@@ -126,7 +128,7 @@ router.delete("/delete/:id", auth, async (req, res) => {
 	}
 });
 
-// GET /api/submission (Get all submissions)
+// GET /api/submission (Get all submissions )
 router.get("/fetchAll", async (req, res) => {
 	try {
 		const submission = await Submission.find({});
@@ -140,7 +142,22 @@ router.get("/fetchAll", async (req, res) => {
 // GET /api/tasks (Get all tasks for an employer)
 router.get("/fetchMySubmissions", auth, async (req, res) => {
 	try {
-		const submissions = await Submission.find({ submittedBy: req.user.id });
+		const submissions = await Submission.find({
+			submittedBy: req.user.id,
+		}).populate("task");
+		res.json(submissions);
+	} catch (err) {
+		console.error(err.message);
+		res.status(500).send("Server error");
+	}
+});
+
+// GET /api/tasks (Get all tasks for an employer)
+router.get("/fetchTaskSubmissions/:id", auth, async (req, res) => {
+	try {
+		const submissions = await Submission.find({ task: req.params.id }).populate(
+			"submittedBy"
+		);
 		res.json(submissions);
 	} catch (err) {
 		console.error(err.message);

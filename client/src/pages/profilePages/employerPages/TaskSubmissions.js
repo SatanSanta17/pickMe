@@ -8,10 +8,11 @@ const TaskSubmissions = () => {
 
 	useEffect(() => {
 		const fetchSubmissions = async () => {
+			console.log(id);
 			try {
 				const token = localStorage.getItem("token"); // Assuming token is stored in localStorage
 				const response = await axios.get(
-					`http://localhost:5000/api/tasks/submissions/${id}`,
+					`http://localhost:5000/api/submission/fetchTaskSubmissions/${id}`,
 					{
 						headers: {
 							"x-auth-token": token,
@@ -19,6 +20,7 @@ const TaskSubmissions = () => {
 					}
 				);
 				setSubmissions(response.data);
+				console.log(submissions);
 			} catch (err) {
 				console.error("Error fetching submissions", err);
 			}

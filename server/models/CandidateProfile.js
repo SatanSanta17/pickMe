@@ -19,10 +19,8 @@ const CandidateProfileSchema = new mongoose.Schema({
 	},
 	submissions: [
 		{
-			submission: {
-				type: mongoose.Schema.Types.ObjectId,
-				ref: "Submission",
-			},
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "Submission",
 		},
 	],
 });

@@ -4,7 +4,7 @@ const express = require("express");
 const router = express.Router();
 const auth = require("../middleware/authMiddleware");
 const CandidateProfile = require("../models/CandidateProfile");
-const Submission = require("../models/Submission");
+const { populate } = require("../models/Submission");
 
 // @route    GET /api/candidateProfile/me
 // @desc     Get current candidate's profile
@@ -14,17 +14,22 @@ router.get("/fetch", auth, async (req, res) => {
 		console.log("USER ID:", req.user.id); // Log user ID
 		const profile = await CandidateProfile.findOne({
 			user: req.user.id,
-		}).populate("user", ["name", "email"]);
+		})
+			.populate("user")
+			.populate({
+				path: "submissions", // Populate the task field inside postedTasks
+				populate: {
+					path: "task",
+					populate: {
+						path: "postedBy",
+					},
+				},
+			});
 		if (!profile) {
 			return res.status(400).json({ msg: "There is no profile for this user" });
 		}
 
-		// Fetch submissions made by the candidate
-		const submissions = await Submission.find({
-			submittedBy: req.user.id,
-		}).populate("task", ["title"]);
-
-		res.json({ profile, submissions });
+		res.json({ profile });
 	} catch (err) {
 		console.error(err.message);
 		res.status(500).send("Server error");
