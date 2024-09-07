@@ -6,19 +6,20 @@ import {
 	Route,
 	Navigate,
 } from "react-router-dom";
-import Home from "./pages/Home";
-import Login from "./pages/authenticationPages/Login";
-import Register from "./pages/authenticationPages/Register";
-import CandidateProfile from "./pages/profilePages/candidatePages/CandidateProfile";
-import EmployerProfile from "./pages/profilePages/employerPages/EmployerProfile";
 import axios from "axios";
-import TaskManagement from "./pages/profilePages/employerPages/TaskManagement";
-import TaskList from "./pages/taskPages/TaskList";
-import TaskDetail from "./pages/taskPages/TaskDetail";
-import SubmissionList from "./pages/profilePages/candidatePages/SubmissionList";
-import SubmissionView from "./pages/submissionPages/SubmissionView";
-import TaskSubmissions from "./pages/profilePages/employerPages/TaskSubmissions";
+import Home from "./pages/Home";
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
 import ProfileCompletion from "./pages/ProfileCompletion";
+import CandidateProfile from "./pages/profile/candidate/CandidateProfile";
+import SubmissionList from "./pages/profile/candidate/submissions/SubmissionsView";
+import SubmissionView from "./pages/profile/candidate/submissions/submission/SubmissionView";
+import SubmissionEdit from "./pages/profile/candidate/submissions/submission/SubmissionEdit";
+import EmployerProfile from "./pages/profile/employer/EmployerProfile";
+import TaskManagement from "./pages/profile/employer/tasks/TasksView";
+import TaskSubmissions from "./pages/profile/employer/tasks/task/submissions/SubmissionsView";
+import TaskList from "./pages/tasks/TasksView";
+import TaskDetail from "./pages/tasks/task/TaskView";
 
 const App = () => {
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -90,9 +91,10 @@ const App = () => {
 						<Route path="/profile-completion" element={<ProfileCompletion />} />
 						<Route path="/myTasks" element={<TaskManagement />} />
 						<Route path="/tasks" element={<TaskList />} />
-						<Route path="/tasks/:id" element={<TaskDetail />} />
+						<Route path="/task/:id" element={<TaskDetail />} />
 						<Route path="/my-submissions" element={<SubmissionList />} />
 						<Route path="/submission/:id" element={<SubmissionView />} />
+						<Route path="/submission/:id/edit" element={<SubmissionEdit />} />
 						<Route path="/task/submissions/:id" element={<TaskSubmissions />} />
 					</Routes>
 				</Router>

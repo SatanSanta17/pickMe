@@ -65,8 +65,6 @@ router.get("/fetch/:id", auth, async (req, res) => {
 			submittedByID = submission.submittedBy._id.toString();
 			if (submittedByID === req.user.id) {
 				console.log("inside if block");
-				console.log("SUBMISSION ID:", submission._id.toString());
-				console.log("ALREADY SUBMITTED BY:", submittedByID);
 				alreadySubmitted = true;
 				return res.status(200).json({
 					alreadySubmitted,
@@ -75,7 +73,7 @@ router.get("/fetch/:id", auth, async (req, res) => {
 				});
 			}
 		}
-		console.log("outside for loop");
+
 		res.json(task);
 	} catch (err) {
 		console.error(err.message);

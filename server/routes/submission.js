@@ -69,7 +69,9 @@ router.get("/fetch/:id", auth, async (req, res) => {
 // Update a submission (PUT)
 router.put("/update/:id", auth, async (req, res) => {
 	try {
-		const { title, description, deadline, status } = req.body;
+		const { solution } = req.body;
+		console.log("Solution to update:", req.body);
+
 		let submission = await Submission.findById(req.params.id);
 
 		if (!submission) {
