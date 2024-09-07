@@ -47,15 +47,35 @@ router.post("/createTask", auth, async (req, res) => {
 
 // GET /api/tasks/:id (Get details of a specific task)
 router.get("/fetch/:id", auth, async (req, res) => {
+	console.log("REQ USER ID:", req.user.id.toString());
 	try {
 		const task = await Task.findById(req.params.id).populate({
 			path: "submissions", // Access the submissions field inside Task
-			select: "solution submittedBy", // Select solution and candidate from Submission
-			populate: { path: "submittedBy", select: "name email" }, // Populate candidate info
+			populate: { path: "submittedBy" }, // Populate candidate info
 		});
+
 		if (!task) {
 			return res.status(404).json({ message: "Task not found" });
 		}
+
+		const submissions = task.submissions;
+		let alreadySubmitted, submittedByID;
+
+		for (let submission of submissions) {
+			submittedByID = submission.submittedBy._id.toString();
+			if (submittedByID === req.user.id) {
+				console.log("inside if block");
+				console.log("SUBMISSION ID:", submission._id.toString());
+				console.log("ALREADY SUBMITTED BY:", submittedByID);
+				alreadySubmitted = true;
+				return res.status(200).json({
+					alreadySubmitted,
+					submittedByID,
+					submissionID: submission._id.toString(),
+				});
+			}
+		}
+		console.log("outside for loop");
 		res.json(task);
 	} catch (err) {
 		console.error(err.message);
