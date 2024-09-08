@@ -1,45 +1,58 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const SubmissionView = () => {
-	const { id } = useParams(); // Get submission ID from URL
-	const [submission, setSubmission] = useState(null);
+	const location = useLocation();
 	const navigate = useNavigate();
+	const token = localStorage.getItem("token");
+	const { submissionId } = useParams(); // Get submission ID from URL
+	const [submission, setSubmission] = useState(null);
 
-	useEffect(() => {
-		const fetchSubmission = async () => {
+	const fetchSubmission = async (submissionId) => {
+		if (token) {
+			console.log("TOKEN EXISTS");
 			try {
-				const token = localStorage.getItem("token");
 				const response = await axios.get(
-					`http://localhost:5000/api/submission/fetch/${id}`,
+					`http://localhost:5000/api/submission/fetch/${submissionId}`,
 					{
 						headers: { "x-auth-token": token },
 					}
 				);
-				setSubmission(response.data);
+				const taskSubmission = response.data;
+				console.log("TASK SUBMISSION FETCHED USING API");
+				setSubmission(taskSubmission);
 			} catch (err) {
 				console.error(err);
 			}
-		};
-
-		fetchSubmission();
-	}, [id]);
+		} else {
+			console.log("TOKEN DOESNT EXIST");
+		}
+	};
 
 	// Delete submission
-	const handleDelete = async () => {
+	const handleDelete = async (submissionId) => {
 		try {
 			const response = await axios.delete(
-				`http://localhost:5000/api/submission/delete/${submission._id}`,
+				`http://localhost:5000/api/submission/delete/${submissionId}`,
 				{ headers: { "x-auth-token": localStorage.getItem("token") } }
 			);
-			navigate("/my-submissions", { replace: true });
-			console.log("Submission deleted successfully", response.data);
+			console.log("SUBMISSION DELETED SUCCESSFULLY");
+			alert("Submission deleted successfully", response.msg);
+			navigate("/profile/submissions", { replace: true });
 		} catch (err) {
 			console.error("Error deleting submission", err.response.data);
 		}
 	};
+
+	useEffect(() => {
+		if (location.state && location.state.submission) {
+			console.log("TASK SUBMISSION FETCHED USING STATE");
+			const taskSubmission = location.state.submission;
+			setSubmission(taskSubmission);
+		} else fetchSubmission(submissionId);
+	}, []);
 
 	if (!submission) {
 		return <p>Loading...</p>;
@@ -53,14 +66,16 @@ const SubmissionView = () => {
 				<p>{submission.task.description}</p>
 				<h4>Your Solution:</h4>
 				<p>{submission.solution}</p>
+				<h4>Submission Status:</h4>
+				<p>{submission.status}</p>
 			</div>
 			<div>
-				{submission.status === "pending" && (
+				{submission.status === "pending" ? (
 					<>
 						<button
 							onClick={() => {
 								if (submission) {
-									navigate(`/submission/${submission._id}/edit`, {
+									navigate(`/profile/submission/edit/${submission._id}`, {
 										state: { submission }, // Ensure submission exists here
 									});
 								} else {
@@ -73,6 +88,8 @@ const SubmissionView = () => {
 
 						<button onClick={handleDelete}>Delete Submission</button>
 					</>
+				) : (
+					<>SUBMISSION IS UNDER REVIEW</>
 				)}
 			</div>
 		</>

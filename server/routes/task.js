@@ -4,11 +4,12 @@ const auth = require("../middleware/authMiddleware");
 const Task = require("../models/Task");
 const User = require("../models/User");
 const EmployerProfile = require("../models/EmployerProfile");
+const Submission = require("../models/Submission");
 
 // @route    POST /api/tasks
 // @desc     Post a task (employers only)
 // @access   Private
-router.post("/createTask", auth, async (req, res) => {
+router.post("/create", auth, async (req, res) => {
 	try {
 		// Get the user by ID
 		const user = await User.findById(req.user.id);
@@ -46,7 +47,7 @@ router.post("/createTask", auth, async (req, res) => {
 });
 
 // GET /api/tasks/:id (Get details of a specific task)
-router.get("/fetch/:id", auth, async (req, res) => {
+router.get("/fetch/:id", async (req, res) => {
 	console.log("REQ USER ID:", req.user.id.toString());
 	try {
 		const task = await Task.findById(req.params.id).populate({
@@ -57,23 +58,6 @@ router.get("/fetch/:id", auth, async (req, res) => {
 		if (!task) {
 			return res.status(404).json({ message: "Task not found" });
 		}
-
-		const submissions = task.submissions;
-		let alreadySubmitted, submittedByID;
-
-		for (let submission of submissions) {
-			submittedByID = submission.submittedBy._id.toString();
-			if (submittedByID === req.user.id) {
-				console.log("inside if block");
-				alreadySubmitted = true;
-				return res.status(200).json({
-					alreadySubmitted,
-					submittedByID,
-					submissionID: submission._id.toString(),
-				});
-			}
-		}
-
 		res.json(task);
 	} catch (err) {
 		console.error(err.message);
@@ -124,14 +108,30 @@ router.delete("/delete/:id", auth, async (req, res) => {
 			return res.status(401).json({ msg: "User not authorized" });
 		}
 
-		// Find the associated EmployerProfile and update it
+		// Step 1: Find and delete submissions linked to the task
+		const submissions = await Submission.find({ task: task._id });
+		if (submissions.length > 0) {
+			for (const submission of submissions) {
+				// Step 2: Remove submissions from candidate profiles
+				await CandidateProfile.findOneAndUpdate(
+					{ user: submission.submittedBy }, // Find the candidate
+					{ $pull: { submissions: submission._id } } // Remove the submission
+				);
+
+				// Delete the submission
+				await Submission.findByIdAndDelete(submission._id);
+			}
+		}
+		// Step 3: Update the employer profile to remove the task
 		await EmployerProfile.findOneAndUpdate(
 			{ user: task.postedBy },
 			{ $pull: { postedTasks: task._id } }
 		);
 
+		// Step 4: Finally, delete the task
 		await Task.findByIdAndDelete(task._id);
-		res.json({ msg: "Task removed" });
+
+		res.json({ msg: "Task and related submissions removed" });
 	} catch (err) {
 		console.error(err.message);
 		res.status(500).send("Server error");
@@ -156,11 +156,13 @@ router.get("/fetchAll", async (req, res) => {
 // GET /api/tasks (Get all tasks for an employer)
 router.get("/fetchMyTasks", auth, async (req, res) => {
 	try {
-		const tasks = await Task.find({ postedBy: req.user.id }).populate({
-			path: "submissions", // Access the submissions field inside Task
-			select: "solution submittedBy", // Select solution and candidate from Submission
-			populate: { path: "submittedBy", select: "name email" }, // Populate candidate info
-		});
+		const tasks = await Task.find({ postedBy: req.user.id })
+			.populate("postedBy")
+			.populate({
+				path: "submissions", // Access the submissions field inside Task
+				select: "solution submittedBy", // Select solution and candidate from Submission
+				populate: { path: "submittedBy" }, // Populate candidate info
+			});
 		res.json(tasks);
 	} catch (err) {
 		console.error(err.message);

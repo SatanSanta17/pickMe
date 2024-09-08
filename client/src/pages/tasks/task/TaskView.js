@@ -1,86 +1,124 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode"; // Import the jwt-decode library
 
 const TaskDetail = () => {
-	const { id } = useParams(); // Get the task ID from the URL
+	const { taskId } = useParams(); // Get the task ID from the URL
+	const navigate = useNavigate();
+	const location = useLocation();
+	const token = localStorage.getItem("token");
 	const [task, setTask] = useState(null);
 	const [solution, setSolution] = useState("");
-	const navigate = useNavigate();
 	const [alreadySubmitted, setAlreadySubmitted] = useState(false);
 	const [submissionId, setSubmissionId] = useState(null);
+	const [user, setUser] = useState(null);
 
 	// Fetch the task details
 
-	useEffect(() => {
-		const fetchTaskData = async () => {
-			const token = localStorage.getItem("token");
-			if (token) {
-				try {
-					const response = await axios.get(
-						`http://localhost:5000/api/tasks/fetch/${id}`,
-						{
-							headers: {
-								"x-auth-token": token,
-							},
-						}
-					);
+	const fetchTaskDetails = async () => {
+		if (token) {
+			console.log("TOKEN EXISTS");
+			const decodedToken = jwtDecode(token); // Decode the JWT token
+			try {
+				const response = await axios.get(
+					`http://localhost:5000/api/task/fetch/${taskId}`
+				);
+				const taskDetails = response.data;
+				// If the task has already been submitted
+				const submissions = taskDetails.submissions;
+				const userId = decodedToken.id || decodedToken._id; // Assuming the token contains the user ID
+				let submittedByID;
 
-					// If the task has already been submitted
-					if (response.data.alreadySubmitted) {
-						console.log(response.data);
+				for (let submission of submissions) {
+					submittedByID = submission.submittedBy._id.toString();
+					if (submittedByID === userId) {
+						console.log("TASK ALREADY SUBMITTED");
 						setAlreadySubmitted(true);
-						setSubmissionId(response.data.submissionID);
-						// Redirect to the submission view page
-						// navigate(`/submission/${response.data.submissionId}`);
-					} else {
-						console.log(response.data);
-						setTask(response.data);
-						setAlreadySubmitted(false);
+						setSubmissionId(submission._id.toString());
+						return;
 					}
-				} catch (error) {
-					console.error("Error fetching task", error);
 				}
+				console.log("TASK NOT SUBMITTED");
+				setTask(taskDetails);
+				setAlreadySubmitted(false);
+				console.log("TASK RECEIVED THROUGH API");
+			} catch (error) {
+				console.error("Error fetching task", error);
 			}
-		};
-
-		fetchTaskData();
-	}, [id, navigate]);
+		} else {
+			console.log("TOKEN DOESNT EXIST");
+		}
+	};
 
 	// Handle solution submission
 	const submitSolution = async () => {
-		try {
-			const response = await fetch(
-				"http://localhost:5000/api/submission/submit",
-				{
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-						"x-auth-token": localStorage.getItem("token"),
-					},
-					body: JSON.stringify({
+		if (token) {
+			console.log("TOKEN EXISTS");
+			try {
+				const response = await axios.post(
+					"http://localhost:5000/api/submission/submit",
+					{
 						taskId: task._id,
 						solution,
-					}),
-				}
-			);
+					},
+					{
+						headers: {
+							"Content-Type": "application/json",
+							"x-auth-token": token,
+						},
+					}
+				);
 
-			if (response.ok) {
-				// Properly parse the response as JSON
-				const userData = await response.json();
-				console.log(userData);
-				setSubmissionId(userData._id);
+				const submission = response.data;
 				alert("Solution submitted successfully!");
+				console.log("SOLUTION SUBMITTED");
 				setSolution(""); // Clear the input after submission
-				navigate(`/submission/${submissionId}`, { replace: true });
-			} else {
+				navigate(`/profile/submission/${submission._id}`, { replace: true });
+			} catch (error) {
 				alert("Failed to submit solution");
+				console.error("Error submitting solution:", error);
 			}
-		} catch (error) {
-			console.error("Error submitting solution:", error);
+		} else {
+			console.log("TOKEN DOESNT EXIST");
 		}
 	};
+
+	useEffect(() => {
+		if (location.state && location.state.user) {
+			const currentUser = location.state.user;
+			console.log("USER RECEIVED THROUGH STATE");
+			setUser(currentUser);
+			if (location.state && location.state.task) {
+				console.log("TASK RECEIVED THROUGH STATE");
+				const taskDetails = location.state.task;
+				// If the task has already been submitted
+				const submissions = taskDetails.submissions;
+				const userId = currentUser._id;
+				let submittedByID;
+
+				for (let submission of submissions) {
+					submittedByID = submission.submittedBy._id.toString();
+					if (submittedByID === userId) {
+						console.log("TASK ALREADY SUBMITTED");
+						setAlreadySubmitted(true);
+						setSubmissionId(submission._id.toString());
+						return;
+					}
+				}
+				console.log("TASK NOT SUBMITTED");
+				setTask(taskDetails);
+				setAlreadySubmitted(false);
+			} else {
+				console.log("TASK DID NOT RECEIVED THROUGH STATE");
+				fetchTaskDetails();
+			}
+		} else {
+			console.log("USER DID NOT RECEIVED THROUGH STATE");
+			fetchTaskDetails();
+		}
+	}, []);
 
 	return (
 		<div>
@@ -89,10 +127,10 @@ const TaskDetail = () => {
 					<div>Task Already Submitted Please view your submission</div>
 					<button
 						onClick={() =>
-							navigate(`/submission/${submissionId}`, { replace: true })
+							navigate(`/profile/submission/${submissionId}`, { replace: true })
 						}
 					>
-						Submit Solution
+						View Solution
 					</button>
 				</>
 			) : task ? (

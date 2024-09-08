@@ -1,27 +1,40 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const TaskList = () => {
-	const [tasks, setTasks] = useState([]);
 	const navigate = useNavigate();
+	const location = useLocation();
+	const [tasks, setTasks] = useState([]);
+	const [user, setUser] = useState([]);
 
 	// Fetch all tasks
 	const fetchTasks = async () => {
 		try {
-			const response = await fetch("http://localhost:5000/api/tasks/fetchAll", {
-				method: "GET",
-				headers: {
-					"Content-Type": "application/json",
-				},
-			});
-			const data = await response.json();
-			setTasks(data);
+			const response = await axios.get(
+				"http://localhost:5000/api/task/fetchAll",
+				{
+					headers: {
+						"Content-Type": "application/json",
+					},
+				}
+			);
+			const availableTasks = await response.data;
+			console.log("TASKS RECEIVED THROUGH API");
+			setTasks(availableTasks);
 		} catch (error) {
 			console.error("Error fetching tasks:", error);
 		}
 	};
 
 	useEffect(() => {
+		if (location.state && location.state.user) {
+			const currentUser = location.state.user;
+			console.log("USER RECEIVED THROUGH STATE");
+			setUser(currentUser);
+		} else {
+			console.log("NO USER RECEIVED THROUGH STATE");
+		}
 		fetchTasks();
 	}, []);
 
@@ -34,7 +47,14 @@ const TaskList = () => {
 						<h2>{task.title}</h2>
 						<p>{task.description}</p>
 						{/* Navigate to the individual task page */}
-						<button onClick={() => navigate(`/tasks/${task._id}`)}>
+						<button
+							onClick={() =>
+								navigate(`/task/${task._id}`, {
+									replace: true,
+									state: { task: task, user: user },
+								})
+							}
+						>
 							View Task Details
 						</button>
 					</div>

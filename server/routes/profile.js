@@ -11,6 +11,7 @@ const EmployerProfile = require("../models/EmployerProfile");
 // @access   Private
 router.get("/fetch/:role", auth, async (req, res) => {
 	const role = req.params.role;
+	// console.log("ROLE:", role);
 	try {
 		if (role === "candidate") {
 			const profile = await CandidateProfile.findOne({
@@ -31,7 +32,7 @@ router.get("/fetch/:role", auth, async (req, res) => {
 					.status(400)
 					.json({ msg: "There is no profile for this user" });
 			}
-			res.json({ profile });
+			res.json(profile);
 		} else if (role === "employer") {
 			const profile = await EmployerProfile.findOne({
 				user: req.user.id,
@@ -49,7 +50,7 @@ router.get("/fetch/:role", auth, async (req, res) => {
 					.status(400)
 					.json({ msg: "There is no profile for this user" });
 			}
-			res.json({ profile });
+			res.json(profile);
 		}
 	} catch (err) {
 		console.error(err.message);

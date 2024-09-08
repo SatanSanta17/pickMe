@@ -155,11 +155,11 @@ router.get("/fetchMySubmissions", auth, async (req, res) => {
 });
 
 // GET /api/submission (Get all submission for a Task)
-router.get("/fetchTaskSubmissions/:id", auth, async (req, res) => {
+router.get("/fetchTaskSubmissions/:taskId", auth, async (req, res) => {
 	try {
-		const submissions = await Submission.find({ task: req.params.id }).populate(
-			"submittedBy"
-		);
+		const submissions = await Submission.find({
+			task: req.params.taskId,
+		}).populate("submittedBy");
 		res.json(submissions);
 	} catch (err) {
 		console.error(err.message);

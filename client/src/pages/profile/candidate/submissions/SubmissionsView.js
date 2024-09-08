@@ -1,29 +1,40 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const SubmissionList = () => {
-	const [submissions, setSubmissions] = useState([]);
 	const navigate = useNavigate();
+	const token = localStorage.getItem("token");
+	const location = useLocation();
+	const [submissions, setSubmissions] = useState([]);
 
-	useEffect(() => {
-		const fetchSubmissions = async () => {
+	const fetchMySubmissions = async () => {
+		if (token) {
+			console.log("TOKEN EXISTS");
 			try {
-				const token = localStorage.getItem("token"); // Get token
 				const response = await axios.get(
 					"http://localhost:5000/api/submission/fetchMySubmissions",
 					{
 						headers: { "x-auth-token": token },
 					}
 				);
-				console.log(response.data);
-				setSubmissions(response.data);
+				const mySubmissions = response.data;
+				console.log("MY SUBMISSIONS FETCHED USING API");
+				setSubmissions(mySubmissions);
 			} catch (err) {
 				console.error(err);
 			}
-		};
+		} else {
+			console.log("TOKEN DOESNT EXIST");
+		}
+	};
 
-		fetchSubmissions();
+	useEffect(() => {
+		if (location.state && location.state.submissions) {
+			console.log("MY SUBMISSIONS FETCHED USING STATE");
+			const mySubmissions = location.state.submissions;
+			setSubmissions(mySubmissions);
+		} else fetchMySubmissions();
 	}, []);
 
 	return (
@@ -37,7 +48,14 @@ const SubmissionList = () => {
 						<li key={submission._id}>
 							<h3>{submission.task.title}</h3>
 							<p>{submission.task.description}</p>
-							<button onClick={() => navigate(`/submission/${submission._id}`)}>
+							<button
+								onClick={() =>
+									navigate(`/profile/submission/${submission._id}`, {
+										replace: true,
+										state: { submission },
+									})
+								}
+							>
 								View Submission
 							</button>
 						</li>

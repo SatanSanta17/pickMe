@@ -1,33 +1,38 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 
 const TaskSubmissions = () => {
+	const location = useLocation();
+	const navigate = useNavigate();
 	const [submissions, setSubmissions] = useState([]);
-	const { id } = useParams(); // Get the task ID from the URL
+	const { taskId } = useParams(); // Get the task ID from the URL
 
+	const fetchTaskSubmissions = async (taskId) => {
+		console.log(taskId);
+		try {
+			const token = localStorage.getItem("token"); // Assuming token is stored in localStorage
+			const response = await axios.get(
+				`http://localhost:5000/api/submission/fetchTaskSubmissions/${taskId}`,
+				{
+					headers: {
+						"x-auth-token": token,
+					},
+				}
+			);
+			const taskSubmissions = response.data;
+			setSubmissions(taskSubmissions);
+			console.log(submissions);
+		} catch (err) {
+			console.error("Error fetching submissions", err);
+		}
+	};
 	useEffect(() => {
-		const fetchSubmissions = async () => {
-			console.log(id);
-			try {
-				const token = localStorage.getItem("token"); // Assuming token is stored in localStorage
-				const response = await axios.get(
-					`http://localhost:5000/api/submission/fetchTaskSubmissions/${id}`,
-					{
-						headers: {
-							"x-auth-token": token,
-						},
-					}
-				);
-				setSubmissions(response.data);
-				console.log(submissions);
-			} catch (err) {
-				console.error("Error fetching submissions", err);
-			}
-		};
-
-		fetchSubmissions();
-	}, [id]);
+		if (location.state && location.state.submissions) {
+			const taskSubmissions = location.state.submissions;
+			setSubmissions(taskSubmissions);
+		} else fetchTaskSubmissions(taskId);
+	}, []);
 
 	return (
 		<div>
@@ -44,6 +49,16 @@ const TaskSubmissions = () => {
 							Date Submitted:{" "}
 							{new Date(submission.submittedAt).toLocaleDateString()}
 						</p>
+						<button
+							onClick={() =>
+								navigate(
+									`/profile/task/${taskId}/submission/${submission._id}`,
+									{ replace: true, state: { submission } }
+								)
+							}
+						>
+							View Submission
+						</button>
 					</li>
 				))}
 			</ul>

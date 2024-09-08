@@ -1,28 +1,34 @@
+import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const Home = ({ setIsAuthenticated }) => {
-	const [user, setUser] = useState(null); // State to hold user data
 	const navigate = useNavigate();
+	const token = localStorage.getItem("token");
+	const [user, setUser] = useState(null); // State to hold user data
 
 	const fetchUserData = async () => {
-		const token = localStorage.getItem("token");
 		// Make sure the token exists before making a request
 		if (token) {
+			console.log("TOKEN EXISTS");
 			try {
-				const response = await fetch("http://localhost:5000/api/auth/user", {
-					method: "GET",
-					headers: {
-						"Content-Type": "application/json",
-						"x-auth-token": token,
-					},
-				});
-				const userData = await response.json();
-				console.log(userData);
+				const response = await axios.get(
+					"http://localhost:5000/api/auth/user",
+					{
+						headers: {
+							"Content-Type": "application/json",
+							"x-auth-token": token,
+						},
+					}
+				);
+				const userData = response.data;
+				console.log("USER FETCHED USING API");
 				setUser(userData);
 			} catch (err) {
 				console.error("Error fetching user data", err);
 			}
+		} else {
+			console.log("TOKEN DOESNT EXIST");
 		}
 	};
 	// Fetch user data when the component mounts
@@ -43,8 +49,14 @@ const Home = ({ setIsAuthenticated }) => {
 			{user ? <h2>Hello, {user.name}!</h2> : <p>Loading...</p>}
 
 			<button onClick={handleLogout}>Logout</button>
-			<button onClick={() => navigate("/profile")}>Go to Profile</button>
-			<button onClick={() => navigate("/tasks")}>View Tasks</button>
+			<button onClick={() => navigate("/profile", { replace: true })}>
+				Go to Profile
+			</button>
+			<button
+				onClick={() => navigate("/tasks", { replace: true, state: { user } })}
+			>
+				View Tasks
+			</button>
 		</div>
 	);
 };

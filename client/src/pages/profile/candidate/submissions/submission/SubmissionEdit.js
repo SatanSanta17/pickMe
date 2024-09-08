@@ -1,9 +1,10 @@
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 const SubmissionActions = () => {
 	const location = useLocation();
+	const navigate = useNavigate();
 	const { submissionId } = useParams();
 	const [solution, setSolution] = useState("");
 	const [loading, setLoading] = useState(true);
@@ -45,6 +46,7 @@ const SubmissionActions = () => {
 				{ headers: { "x-auth-token": localStorage.getItem("token") } }
 			);
 			console.log("Submission edited successfully", response.data);
+			navigate(`/profile/submission/${submission._id}`);
 		} catch (err) {
 			console.error("Error editing submission", err.response.data);
 		}
