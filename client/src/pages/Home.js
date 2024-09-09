@@ -5,15 +5,17 @@ import { useNavigate } from "react-router-dom";
 const Home = ({ setIsAuthenticated }) => {
 	const navigate = useNavigate();
 	const token = localStorage.getItem("token");
-	const [user, setUser] = useState(null); // State to hold user data
+	const [profile, setProfile] = useState(null); // State to hold user data
 
 	const fetchUserData = async () => {
 		// Make sure the token exists before making a request
 		if (token) {
 			console.log("TOKEN EXISTS");
+			const decodedToken = jwtDecode(token); // Decode the JWT token
+			const userRole = decodedToken.user.userRole;
 			try {
 				const response = await axios.get(
-					"http://localhost:5000/api/auth/user",
+					`http://localhost:5000/api/profile/${userRole}`,
 					{
 						headers: {
 							"Content-Type": "application/json",
@@ -21,9 +23,9 @@ const Home = ({ setIsAuthenticated }) => {
 						},
 					}
 				);
-				const userData = response.data;
-				console.log("USER FETCHED USING API");
-				setUser(userData);
+				const profileData = response.data;
+				console.log("PROFILE FETCHED USING API");
+				setProfile(profileData);
 			} catch (err) {
 				console.error("Error fetching user data", err);
 			}
@@ -46,14 +48,20 @@ const Home = ({ setIsAuthenticated }) => {
 		<div>
 			<h1>Welcome to the Task-Based Job Portal!</h1>
 
-			{user ? <h2>Hello, {user.name}!</h2> : <p>Loading...</p>}
+			{user ? <h2>Hello, {profile.user.name}!</h2> : <p>Loading...</p>}
 
 			<button onClick={handleLogout}>Logout</button>
-			<button onClick={() => navigate("/profile", { replace: true })}>
+			<button
+				onClick={() =>
+					navigate("/profile", { replace: true, state: { profile } })
+				}
+			>
 				Go to Profile
 			</button>
 			<button
-				onClick={() => navigate("/tasks", { replace: true, state: { user } })}
+				onClick={() =>
+					navigate("/tasks", { replace: true, state: { user: profile.user } })
+				}
 			>
 				View Tasks
 			</button>
