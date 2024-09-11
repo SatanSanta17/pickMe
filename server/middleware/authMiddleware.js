@@ -1,8 +1,8 @@
 const jwt = require("jsonwebtoken");
 const config = require("config");
 const jwtSecret = config.get("jwtSecret");
-
-module.exports = function (req, res, next) {
+const authMiddleware = (req, res, next) => {
+	// Your middleware logic here
 	// Get token from header
 	const token = req.header("x-auth-token");
 
@@ -20,3 +20,5 @@ module.exports = function (req, res, next) {
 		res.status(401).json({ msg: "Token is not valid" });
 	}
 };
+
+module.exports = authMiddleware;

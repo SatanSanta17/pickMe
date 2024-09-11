@@ -29,9 +29,9 @@ const createTask = async (req, res) => {
 };
 
 // Get all tasks (Candidates only)
-const getTasks = async (req, res) => {
+const getAllTasks = async (req, res) => {
 	try {
-		const tasks = await Task.find().populate({
+		const tasks = await Task.find({}).populate({
 			path: "submissions", // Access the submissions field inside Task
 			populate: { path: "submittedBy" }, // Populate candidate info
 		}); // Optionally populate the employer info
@@ -121,7 +121,7 @@ const deleteTask = async (req, res) => {
 			{ $pull: { postedTasks: task._id } }
 		);
 
-		await task.remove();
+		await Task.findByIdAndDelete(task._id);
 
 		res.json({ msg: "Task removed" });
 	} catch (error) {
@@ -131,7 +131,7 @@ const deleteTask = async (req, res) => {
 };
 
 // Fetch tasks posted by the logged-in employer
-const fetchMyTasks = async (req, res) => {
+const getMyTasks = async (req, res) => {
 	try {
 		const tasks = await Task.find({ postedBy: req.user.id })
 			.populate("postedBy")
@@ -149,9 +149,9 @@ const fetchMyTasks = async (req, res) => {
 
 module.exports = {
 	createTask,
-	getTasks,
+	getAllTasks,
 	getTaskById,
 	updateTask,
 	deleteTask,
-	fetchMyTasks,
+	getMyTasks,
 };

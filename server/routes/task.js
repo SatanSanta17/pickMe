@@ -1,21 +1,26 @@
 const express = require("express");
 const router = express.Router();
-const { authMiddleware } = require("../middlewares/authMiddleware");
-const { roleMiddleware } = require("../middlewares/roleMiddleware");
+const authMiddleware = require("../middleware/authMiddleware");
+const roleMiddleware = require("../middleware/roleMiddleware");
 const {
 	createTask,
-	getTasks,
+	getAllTasks,
 	getTaskById,
 	updateTask,
 	deleteTask,
-	fetchMyTasks,
+	getMyTasks,
 } = require("../controllers/taskController");
 
 // Create a new task (only for employers)
 router.post("/create", authMiddleware, roleMiddleware("employer"), createTask);
 
 // Get all tasks (for candidates)
-router.get("/fetchAll", authMiddleware, roleMiddleware("candidate"), getTasks);
+router.get(
+	"/fetchAll",
+	authMiddleware,
+	roleMiddleware("candidate"),
+	getAllTasks
+);
 
 // Get a specific task by ID
 router.get("/fetch/:id", authMiddleware, getTaskById);
@@ -41,7 +46,7 @@ router.get(
 	"/fetchMyTasks",
 	authMiddleware,
 	roleMiddleware("employer"),
-	fetchMyTasks
+	getMyTasks
 );
 
 module.exports = router;

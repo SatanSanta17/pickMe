@@ -1,13 +1,13 @@
 // src/pages/CandidateProfile.js
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const CandidateProfile = () => {
 	const navigate = useNavigate();
 	const token = localStorage.getItem("token");
+	const location = useLocation();
 	const [profile, setProfile] = useState(null);
-	const [submissions, setSubmissions] = useState([]);
 
 	const fetchProfile = async () => {
 		if (token) {
@@ -31,8 +31,13 @@ const CandidateProfile = () => {
 			console.log("TOKEN DOESNT EXIST");
 		}
 	};
+
 	useEffect(() => {
-		fetchProfile();
+		if (location.state && location.state.profile) {
+			console.log("CANDIDATE PROFILE FETCHED USING STATE");
+			const candidateProfile = location.state.profile;
+			setProfile(candidateProfile);
+		} else fetchProfile();
 	}, []);
 
 	return (

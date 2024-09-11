@@ -86,7 +86,9 @@ const SubmissionView = () => {
 							Edit Submission
 						</button>
 
-						<button onClick={handleDelete}>Delete Submission</button>
+						<button onClick={() => handleDelete(submission._id)}>
+							Delete Submission
+						</button>
 					</>
 				) : (
 					<>SUBMISSION IS UNDER REVIEW</>

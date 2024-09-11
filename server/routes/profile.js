@@ -5,7 +5,7 @@ const {
 	getProfile,
 	createProfile,
 	updateProfile,
-} = require("../controllers/candidateProfileController");
+} = require("../controllers/profileController");
 
 // @route    GET /api/profile/:role
 // @desc     Get current user's profile (either candidate or employer)

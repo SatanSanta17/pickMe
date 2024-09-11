@@ -13,7 +13,6 @@ const TaskDetail = () => {
 	const [solution, setSolution] = useState("");
 	const [alreadySubmitted, setAlreadySubmitted] = useState(false);
 	const [submissionId, setSubmissionId] = useState(null);
-	const [user, setUser] = useState(null);
 
 	// Fetch the task details
 
@@ -21,19 +20,16 @@ const TaskDetail = () => {
 		if (token) {
 			console.log("TOKEN EXISTS");
 			const decodedToken = jwtDecode(token); // Decode the JWT token
+			const userId = decodedToken.user.id; // Assuming the token contains the user ID
 			try {
 				const response = await axios.get(
 					`http://localhost:5000/api/task/fetch/${taskId}`
 				);
 				const taskDetails = response.data;
 				// If the task has already been submitted
-				const submissions = taskDetails.submissions;
-				const userId = decodedToken.id || decodedToken._id; // Assuming the token contains the user ID
-				let submittedByID;
 
-				for (let submission of submissions) {
-					submittedByID = submission.submittedBy._id.toString();
-					if (submittedByID === userId) {
+				for (let submission of taskDetails.submissions) {
+					if (submission.submittedBy._id.toString() === userId) {
 						console.log("TASK ALREADY SUBMITTED");
 						setAlreadySubmitted(true);
 						setSubmissionId(submission._id.toString());
@@ -88,19 +84,14 @@ const TaskDetail = () => {
 	useEffect(() => {
 		if (location.state && location.state.user) {
 			const currentUser = location.state.user;
+			const userId = currentUser.id;
 			console.log("USER RECEIVED THROUGH STATE");
-			setUser(currentUser);
 			if (location.state && location.state.task) {
 				console.log("TASK RECEIVED THROUGH STATE");
 				const taskDetails = location.state.task;
 				// If the task has already been submitted
-				const submissions = taskDetails.submissions;
-				const userId = currentUser._id;
-				let submittedByID;
-
-				for (let submission of submissions) {
-					submittedByID = submission.submittedBy._id.toString();
-					if (submittedByID === userId) {
+				for (let submission of taskDetails.submissions) {
+					if (submission.submittedBy._id.toString() === userId) {
 						console.log("TASK ALREADY SUBMITTED");
 						setAlreadySubmitted(true);
 						setSubmissionId(submission._id.toString());
@@ -112,6 +103,7 @@ const TaskDetail = () => {
 				setAlreadySubmitted(false);
 			} else {
 				console.log("TASK DID NOT RECEIVED THROUGH STATE");
+
 				fetchTaskDetails();
 			}
 		} else {

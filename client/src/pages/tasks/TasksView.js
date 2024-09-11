@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode"; // Import the jwt-decode library
 
 const TaskList = () => {
 	const navigate = useNavigate();
-	const location = useLocation();
+	const token = localStorage.getItem("token");
 	const [tasks, setTasks] = useState([]);
 	const [user, setUser] = useState([]);
 
@@ -16,6 +17,7 @@ const TaskList = () => {
 				{
 					headers: {
 						"Content-Type": "application/json",
+						"x-auth-token": token,
 					},
 				}
 			);
@@ -28,14 +30,14 @@ const TaskList = () => {
 	};
 
 	useEffect(() => {
-		if (location.state && location.state.user) {
-			const currentUser = location.state.user;
-			console.log("USER RECEIVED THROUGH STATE");
-			setUser(currentUser);
+		if (token) {
+			console.log("TOKEN EXISTS");
+			fetchTasks();
+			const decodedToken = jwtDecode(token); // Decode the JWT token
+			setUser(decodedToken.user); // Assuming the token contains the user ID
 		} else {
-			console.log("NO USER RECEIVED THROUGH STATE");
+			console.log("TOKEN DOESNT EXIST");
 		}
-		fetchTasks();
 	}, []);
 
 	return (

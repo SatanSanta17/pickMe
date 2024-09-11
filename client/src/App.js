@@ -1,5 +1,6 @@
 // src/App.js
 import React, { useState, useEffect } from "react";
+import { jwtDecode } from "jwt-decode"; // Import the jwt-decode library
 import {
 	BrowserRouter as Router,
 	Routes,
@@ -32,23 +33,12 @@ const App = () => {
 	const token = localStorage.getItem("token");
 	useEffect(() => {
 		if (token) {
+			console.log("TOKEN EXISTS");
+			const decodedToken = jwtDecode(token); // Decode the JWT token
+			// console.log(decodedToken.user);
+			setUserRole(decodedToken.user.role);
 			setIsAuthenticated(true);
-			// Fetch user role from backend
-			axios
-				.get("http://localhost:5000/api/auth/user", {
-					headers: {
-						"x-auth-token": token,
-					},
-				})
-				.then((response) => {
-					console.log("User Role:", response.data.role); // Add this
-					setUserRole(response.data.role);
-					setLoading(false); // Set loading to false after data is fetched
-				})
-				.catch((error) => {
-					console.error("Error fetching user role", error);
-					setLoading(false); // Stop loading if error occurs
-				});
+			setLoading(false);
 		}
 	}, [token]);
 

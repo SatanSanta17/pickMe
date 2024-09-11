@@ -1,6 +1,7 @@
 import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode"; // Import the jwt-decode library
 
 const Home = ({ setIsAuthenticated }) => {
 	const navigate = useNavigate();
@@ -12,10 +13,11 @@ const Home = ({ setIsAuthenticated }) => {
 		if (token) {
 			console.log("TOKEN EXISTS");
 			const decodedToken = jwtDecode(token); // Decode the JWT token
-			const userRole = decodedToken.user.userRole;
+			// console.log(decodedToken.user);
+			const userRole = decodedToken.user.role;
 			try {
 				const response = await axios.get(
-					`http://localhost:5000/api/profile/${userRole}`,
+					`http://localhost:5000/api/profile/fetch/${userRole}`,
 					{
 						headers: {
 							"Content-Type": "application/json",
@@ -48,7 +50,7 @@ const Home = ({ setIsAuthenticated }) => {
 		<div>
 			<h1>Welcome to the Task-Based Job Portal!</h1>
 
-			{user ? <h2>Hello, {profile.user.name}!</h2> : <p>Loading...</p>}
+			{profile ? <h2>Hello, {profile.user.name}!</h2> : <p>Loading...</p>}
 
 			<button onClick={handleLogout}>Logout</button>
 			<button
@@ -58,11 +60,7 @@ const Home = ({ setIsAuthenticated }) => {
 			>
 				Go to Profile
 			</button>
-			<button
-				onClick={() =>
-					navigate("/tasks", { replace: true, state: { user: profile.user } })
-				}
-			>
+			<button onClick={() => navigate("/tasks", { replace: true })}>
 				View Tasks
 			</button>
 		</div>
