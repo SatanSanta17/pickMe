@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode"; // Import the jwt-decode library
 
 const ProfileCompletion = () => {
+	const navigate = useNavigate();
+	const token = localStorage.getItem("token");
 	const [userRole, setUserRole] = useState(null);
 	const [formData, setFormData] = useState({
 		phone: "",
@@ -11,31 +14,17 @@ const ProfileCompletion = () => {
 		companyLogo: "",
 		companyName: "",
 	});
-	const navigate = useNavigate();
 
 	const { phone, profilePicture, resume, companyLogo, companyName } = formData;
 
 	useEffect(() => {
 		// Fetch user data if necessary and pre-fill formData
-		const token = localStorage.getItem("token");
-		console.log("TOKEN:", token);
 		if (token) {
 			// Fetch user role from backend
-			axios
-				.get("http://localhost:5000/api/auth/user", {
-					headers: {
-						"x-auth-token": token,
-					},
-				})
-				.then((response) => {
-					setUserRole(response.data.role);
-					console.log(response.data.role);
-				})
-				.catch((error) => {
-					console.error("Error fetching user role", error);
-				});
+			const decodedToken = jwtDecode(token); // Decode the JWT token
+			setUserRole(decodedToken.user.role);
 		}
-	}, []);
+	}, [token]);
 
 	const handleChange = (e) => {
 		setFormData({
