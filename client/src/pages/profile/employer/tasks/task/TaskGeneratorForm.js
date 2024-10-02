@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-const TaskCreate = () => {
-	const token = localStorage.getItem("token");
+const TaskGeneratorForm = () => {
 	const [formData, setFormData] = useState({
 		role: "",
 		experience: "",
@@ -111,4 +110,4 @@ const TaskCreate = () => {
 	);
 };
 
-export default TaskCreate;
+export default TaskGeneratorForm;

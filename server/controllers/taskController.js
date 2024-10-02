@@ -2,6 +2,7 @@ const Task = require("../models/Task");
 const EmployerProfile = require("../models/EmployerProfile");
 const CandidateProfile = require("../models/CandidateProfile");
 const Submission = require("../models/Submission");
+const { AITaskGeneration } = require("./AI-function"); // Import your AI function
 
 // Create a new task (Employer only)
 const createTask = async (req, res) => {
@@ -25,6 +26,40 @@ const createTask = async (req, res) => {
 	} catch (error) {
 		console.error(error.message);
 		res.status(500).send("Server error");
+	}
+};
+
+// Generate Task (Employer Only)
+const generateTask = async (req, res) => {
+	const {
+		role,
+		experience,
+		keyResponsibilities,
+		requiredSkills,
+		jobDescription,
+	} = req.body;
+	try {
+		const task = await generateContent(
+			role,
+			experience,
+			keyResponsibilities,
+			requiredSkills,
+			jobDescription
+		);
+
+		const filename = `${req.user.id}_generated_task_for_${role}.txt`;
+		const folder = path.join(__dirname, "tasks");
+
+		// Save the generated task to a file
+		if (!fs.existsSync(folder)) {
+			fs.mkdirSync(folder);
+		}
+		const filePath = path.join(folder, filename);
+		fs.writeFileSync(filePath, task, "utf8");
+
+		res.status(200).json({ task });
+	} catch (error) {
+		res.status(500).json({ message: "Task did not created", error });
 	}
 };
 
@@ -154,4 +189,5 @@ module.exports = {
 	updateTask,
 	deleteTask,
 	getMyTasks,
+	generateTask,
 };

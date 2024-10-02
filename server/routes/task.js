@@ -9,10 +9,25 @@ const {
 	updateTask,
 	deleteTask,
 	getMyTasks,
+	generateTask,
 } = require("../controllers/taskController");
 
 // Create a new task (only for employers)
-router.post("/create", authMiddleware, roleMiddleware("employer"), createTask);
+// router.post("/create", authMiddleware, roleMiddleware("employer"), createTask);
+router.post(
+	"/create",
+	authMiddleware,
+	roleMiddleware("employer"),
+	generateTask
+);
+
+// // AI generated Task
+// router.post(
+// 	"/generate-task",
+// 	authMiddleware,
+// 	roleMiddleware("employer"),
+// 	generateTask
+// );
 
 // Get all tasks (for candidates)
 router.get(

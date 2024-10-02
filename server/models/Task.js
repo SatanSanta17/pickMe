@@ -5,7 +5,7 @@ const TaskSchema = new mongoose.Schema({
 		type: String,
 		required: true,
 	},
-	description: {
+	taskFileURL: {
 		type: String,
 		required: true,
 	},
