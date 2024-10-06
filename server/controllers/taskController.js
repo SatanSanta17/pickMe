@@ -2,7 +2,9 @@ const Task = require("../models/Task");
 const EmployerProfile = require("../models/EmployerProfile");
 const CandidateProfile = require("../models/CandidateProfile");
 const Submission = require("../models/Submission");
-const { AITaskGeneration } = require("./AI-function"); // Import your AI function
+const { generateContent } = require("./AI-function"); // Import your AI function
+const fs = require("fs");
+const path = require("path");
 
 // Create a new task (Employer only)
 const createTask = async (req, res) => {
@@ -37,7 +39,9 @@ const generateTask = async (req, res) => {
 		keyResponsibilities,
 		requiredSkills,
 		jobDescription,
+		deadline,
 	} = req.body;
+
 	try {
 		const task = await generateContent(
 			role,
@@ -47,17 +51,22 @@ const generateTask = async (req, res) => {
 			jobDescription
 		);
 
-		const filename = `${req.user.id}_generated_task_for_${role}.txt`;
-		const folder = path.join(__dirname, "tasks");
+		const taskObject = JSON.parse(task);
 
-		// Save the generated task to a file
-		if (!fs.existsSync(folder)) {
-			fs.mkdirSync(folder);
-		}
-		const filePath = path.join(folder, filename);
-		fs.writeFileSync(filePath, task, "utf8");
+		const newTask = new Task({
+			taskObject,
+			postedBy: req.user.id, // User ID from the token
+			deadline,
+		});
+		await newTask.save();
 
-		res.status(200).json({ task });
+		// Add task reference to employer's profile
+		await EmployerProfile.findOneAndUpdate(
+			{ user: req.user.id },
+			{ $push: { postedTasks: newTask._id } }
+		);
+
+		res.status(201).json({ task: newTask });
 	} catch (error) {
 		res.status(500).json({ message: "Task did not created", error });
 	}

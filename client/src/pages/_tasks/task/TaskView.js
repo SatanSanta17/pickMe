@@ -128,8 +128,23 @@ const TaskDetail = () => {
 			) : task ? (
 				<>
 					<div>
-						<h1>{task.title}</h1>
-						<p>{task.description}</p>
+						<h1>{task.taskObject.taskTitle}</h1>
+						<p>{task.taskObject.taskObjective}</p>
+
+						{/* Requirements List */}
+						<ul>
+							{task.taskObject.requirements.map((requirement, index) => (
+								<li key={index}>{requirement}</li> // Key added and return fixed
+							))}
+						</ul>
+
+						{/* Deliverables List */}
+						<ul>
+							{task.taskObject.deliverables.map((deliverable, index) => (
+								<li key={index}>{deliverable}</li> // Key added and return fixed
+							))}
+						</ul>
+
 						<p>Deadline: {new Date(task.deadline).toLocaleDateString()}</p>
 
 						{/* Solution submission form */}

@@ -1,4 +1,3 @@
-const axios = require("axios");
 const { VertexAI } = require("@google-cloud/vertexai");
 
 // Initialize Vertex with your Cloud project and location
@@ -6,7 +5,7 @@ const vertex_ai = new VertexAI({
 	project: "pickme-435813",
 	location: "us-central1",
 });
-const model = "gemini-1.5-flash-002";
+const model = "gemini-1.5-flash-001";
 
 // Instantiate the models
 const generativeModel = vertex_ai.preview.getGenerativeModel({
@@ -45,24 +44,41 @@ async function generateContent(
 ) {
 	const req = {
 		contents: [
-			`Generate a technical task for the role of ${role} with ${experience} years of experience. The tasks should focus on testing the candidate's ability to meet the key responsibilities and required skills for this role.\nEach task should: Include a clear objective, requirements, deliverables, and a timeline for completion. \nHighlight any resources needed from the employer (e.g., Git repository, web application). \nMerge tasks if they share common goals (e.g., code review and performance audit). \nAlign with the key responsibilities and required skills as outlined below. \nKey Responsibilities: ${keyResponsibilities} \nRequired Skills: ${requiredSkills}  \nJob Description: ${jobDescription} \nEnsure the tasks are comprehensive, realistic, and assess both technical and leadership abilities (if applicable).`,
+			{
+				role: "user",
+				parts: [
+					{
+						text: `Generate a technical task for the role of ${role} with ${experience} years of experience. \nThe tasks should focus on testing the candidate's ability to meet the key responsibilities and required skills. 
+						\nPlease provide the response in the following JSON structure:
+						\n{
+							\n"taskTitle":"string"
+							\n"taskObjective": "string",
+							\n"requirements": ["string"],
+							\n"deliverables": ["string"],
+							\n"timeline": "string",
+							\n"resourcesNeeded": ["string"],
+						\n}
+						\nKey Responsibilities: ${keyResponsibilities}
+						\nRequired Skills: ${requiredSkills}
+						\nJob Description: ${jobDescription}
+						\nThe response should be a valid JSON object and nothing else.`,
+					},
+				],
+			},
 		],
 	};
 	try {
 		const streamingResp = await generativeModel.generateContentStream(req);
-		let aggregatedResponse = ""; // Initialize an empty string to store the combined response
+		let aggregatedResponse = "";
 
-		// Collect the streamed chunks
 		for await (const item of streamingResp.stream) {
-			// Concatenate each chunk to the aggregatedResponse
-			aggregatedResponse += item.text; // Assuming item.text contains the response text
+			// console.log(item.candidates[0].content);
+			aggregatedResponse += item.candidates[0].content.parts[0].text;
 		}
-
-		// Return the complete aggregated response
 		return aggregatedResponse;
 	} catch (error) {
-		console.log("Task generation failed:", error);
-		throw new Error("Task generation failed: " + error.message);
+		console.error("Vertex AI API error:", error); // Print full error for debugging
+		throw new Error("Task generation failed.");
 	}
 }
 

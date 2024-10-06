@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const TaskCreate = () => {
+	const navigate = useNavigate();
 	const token = localStorage.getItem("token");
 	const [formData, setFormData] = useState({
 		role: "",
@@ -9,6 +11,7 @@ const TaskCreate = () => {
 		keyResponsibilities: "",
 		requiredSkills: "",
 		jobDescription: "",
+		deadline: "",
 	});
 	const [loading, setLoading] = useState(false);
 	const [successMessage, setSuccessMessage] = useState("");
@@ -33,7 +36,8 @@ const TaskCreate = () => {
 					headers: { "x-auth-token": token },
 				}
 			);
-			console.log("Task generated:", response.data.file);
+			const taskDetails = response.data;
+			console.log("Task generated:", taskDetails);
 			setSuccessMessage("Task successfully created!"); // Set success message
 			setFormData({
 				// Clear inputs
@@ -43,6 +47,10 @@ const TaskCreate = () => {
 				requiredSkills: "",
 				jobDescription: "",
 			});
+			navigate(`/profile/task/${taskDetails._id}`, {
+				replace: true,
+				state: { task: taskDetails },
+			}); // Redirect back to tasks list
 		} catch (error) {
 			console.error("Error generating task:", error);
 			setSuccessMessage("Error generating task. Please try again."); // Set error message
@@ -100,6 +108,14 @@ const TaskCreate = () => {
 					required
 				></textarea>
 				<br />
+				<input
+					id="deadline"
+					name="deadline"
+					type="datetime-local"
+					value={formData.deadline}
+					onChange={handleChange}
+					required
+				/>
 				<button type="submit" disabled={loading}>
 					{loading ? "Generating..." : "Generate Task"}
 				</button>

@@ -3,7 +3,6 @@ const router = express.Router();
 const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
 const {
-	createTask,
 	getAllTasks,
 	getTaskById,
 	updateTask,
@@ -20,14 +19,6 @@ router.post(
 	roleMiddleware("employer"),
 	generateTask
 );
-
-// // AI generated Task
-// router.post(
-// 	"/generate-task",
-// 	authMiddleware,
-// 	roleMiddleware("employer"),
-// 	generateTask
-// );
 
 // Get all tasks (for candidates)
 router.get(
