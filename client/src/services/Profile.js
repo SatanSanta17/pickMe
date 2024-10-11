@@ -2,13 +2,13 @@ import httpService from "./httpService";
 
 const API_URL = "/api/profile";
 
-const createUser = async (userData) => {
-	const response = await httpService.post(API_URL, userData);
+const viewUser = async (userId) => {
+	const response = await httpService.get(`${API_URL}/${userId}`);
 	return response.data;
 };
 
-const viewUser = async (userId) => {
-	const response = await httpService.get(`${API_URL}/${userId}`);
+const viewUsers = async () => {
+	const response = await httpService.get(`${API_URL}/fetchAll`);
 	return response.data;
 };
 
@@ -22,4 +22,4 @@ const deleteUser = async (userId) => {
 	return response.data;
 };
 
-export default { createUser, viewUser, updateUser, deleteUser };
+export default { viewUsers, viewUser, updateUser, deleteUser };

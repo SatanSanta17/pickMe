@@ -7,17 +7,13 @@ const CandidateProfile = require("../models/CandidateProfile");
 // @route    POST api/submission/submit
 // @access   Private (Candidates only)
 const submitSolution = async (req, res) => {
-	const errors = validationResult(req);
-	if (!errors.isEmpty()) {
-		return res.status(400).json({ errors: errors.array() });
-	}
-
 	const { taskId, solution } = req.body;
+	const userId = req.user.id;
 
 	try {
 		const submission = new Submission({
 			task: taskId,
-			submittedBy: req.user.id,
+			submittedBy: userId,
 			solution,
 		});
 
@@ -31,11 +27,11 @@ const submitSolution = async (req, res) => {
 
 		// Find the associated CandidateProfile and update it
 		await CandidateProfile.findOneAndUpdate(
-			{ user: req.user.id },
+			{ user: userId },
 			{ $push: { submissions: submission._id } }
 		);
 
-		res.json(submission);
+		return res.json(submission);
 	} catch (err) {
 		console.error(err.message);
 		res.status(500).send("Server Error");
@@ -46,14 +42,58 @@ const submitSolution = async (req, res) => {
 // @route    GET api/submission/fetch/:id
 // @access   Private
 const getSubmissionById = async (req, res) => {
+	const submissionId = req.params.id;
 	try {
-		const submission = await Submission.findById(req.params.id).populate(
-			"task"
-		);
+		const submission = await Submission.findById(submissionId).populate("task");
 		if (!submission) {
 			return res.status(404).json({ msg: "Submission not found" });
 		}
-		res.json(submission);
+		return res.json(submission);
+	} catch (err) {
+		console.error(err.message);
+		res.status(500).send("Server error");
+	}
+};
+
+// @desc     Get all submissions for a candidate
+// @route    GET api/submission/fetchMySubmissions
+// @access   Private
+const getCandidateSubmissions = async (req, res) => {
+	const userId = req.params.userId;
+	try {
+		const submissions = await Submission.find({
+			submittedBy: userId,
+		}).populate("task");
+		return res.json(submissions);
+	} catch (err) {
+		console.error(err.message);
+		res.status(500).send("Server error");
+	}
+};
+
+// @desc     Get all submissions for a Task
+// @route    GET api/submission/fetchTaskSubmissions/:taskId
+// @access   Private
+const getTaskSubmissions = async (req, res) => {
+	const taskId = req.params.taskId;
+	try {
+		const submissions = await Submission.find({
+			task: taskId,
+		}).populate("submittedBy");
+		res.json(submissions);
+	} catch (err) {
+		console.error(err.message);
+		res.status(500).send("Server error");
+	}
+};
+
+// @desc     Get all submissions
+// @route    GET api/submission/fetchAll
+// @access   Public
+const getAllSubmissions = async (req, res) => {
+	try {
+		const submissions = await Submission.find({});
+		return res.json(submissions);
 	} catch (err) {
 		console.error(err.message);
 		res.status(500).send("Server error");
@@ -64,17 +104,19 @@ const getSubmissionById = async (req, res) => {
 // @route    PUT api/submission/update/:id
 // @access   Private
 const updateSubmission = async (req, res) => {
+	const submissionId = req.params.id;
+	const userId = req.user.id;
 	try {
 		const { solution } = req.body;
 
-		let submission = await Submission.findById(req.params.id);
+		let submission = await Submission.findById(submissionId);
 
 		if (!submission) {
 			return res.status(404).json({ msg: "Submission not found" });
 		}
 
 		// Only the candidate who posted the task can edit it
-		if (submission.submittedBy.toString() !== req.user.id) {
+		if (submission.submittedBy.toString() !== userId) {
 			return res.status(401).json({ msg: "User not authorized" });
 		}
 
@@ -96,15 +138,18 @@ const updateSubmission = async (req, res) => {
 // @route    DELETE api/submission/delete/:id
 // @access   Private
 const deleteSubmission = async (req, res) => {
+	const submissionId = req.params.id;
+	const userId = req.user.id;
+	const userRole = req.user.role;
 	try {
-		const submission = await Submission.findById(req.params.id);
+		const submission = await Submission.findById(submissionId);
 
 		if (!submission) {
 			return res.status(404).json({ msg: "Submission not found" });
 		}
 
 		// Only the candidate who posted the task can delete it
-		if (submission.submittedBy.toString() !== req.user.id) {
+		if (submission.submittedBy.toString() !== userId && userRole !== "admin") {
 			return res.status(401).json({ msg: "User not authorized" });
 		}
 
@@ -121,50 +166,7 @@ const deleteSubmission = async (req, res) => {
 		);
 
 		await Submission.findByIdAndDelete(submission._id);
-		res.json({ msg: "Submission removed" });
-	} catch (err) {
-		console.error(err.message);
-		res.status(500).send("Server error");
-	}
-};
-
-// @desc     Get all submissions
-// @route    GET api/submission/fetchAll
-// @access   Public
-const getAllSubmissions = async (req, res) => {
-	try {
-		const submissions = await Submission.find({});
-		res.json(submissions);
-	} catch (err) {
-		console.error(err.message);
-		res.status(500).send("Server error");
-	}
-};
-
-// @desc     Get all submissions for a candidate
-// @route    GET api/submission/fetchMySubmissions
-// @access   Private
-const getCandidateSubmissions = async (req, res) => {
-	try {
-		const submissions = await Submission.find({
-			submittedBy: req.user.id,
-		}).populate("task");
-		res.json(submissions);
-	} catch (err) {
-		console.error(err.message);
-		res.status(500).send("Server error");
-	}
-};
-
-// @desc     Get all submissions for a Task
-// @route    GET api/submission/fetchTaskSubmissions/:taskId
-// @access   Private
-const getTaskSubmissions = async (req, res) => {
-	try {
-		const submissions = await Submission.find({
-			task: req.params.taskId,
-		}).populate("submittedBy");
-		res.json(submissions);
+		return res.json({ msg: "Submission removed" });
 	} catch (err) {
 		console.error(err.message);
 		res.status(500).send("Server error");

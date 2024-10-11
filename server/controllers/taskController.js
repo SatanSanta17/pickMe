@@ -3,33 +3,7 @@ const EmployerProfile = require("../models/EmployerProfile");
 const CandidateProfile = require("../models/CandidateProfile");
 const Submission = require("../models/Submission");
 const { generateContent } = require("./AI-function"); // Import your AI function
-const fs = require("fs");
-const path = require("path");
-
-// Create a new task (Employer only)
-const createTask = async (req, res) => {
-	try {
-		const { title, description, deadline } = req.body;
-		const task = new Task({
-			title,
-			description,
-			deadline,
-			postedBy: req.user.id, // User ID from the token
-		});
-		await task.save();
-
-		// Add task reference to employer's profile
-		await EmployerProfile.findOneAndUpdate(
-			{ user: req.user.id },
-			{ $push: { postedTasks: task._id } }
-		);
-
-		res.status(201).json(task);
-	} catch (error) {
-		console.error(error.message);
-		res.status(500).send("Server error");
-	}
-};
+const User = require("../models/User");
 
 // Generate Task (Employer Only)
 const generateTask = async (req, res) => {
@@ -41,7 +15,6 @@ const generateTask = async (req, res) => {
 		jobDescription,
 		deadline,
 	} = req.body;
-
 	try {
 		const task = await generateContent(
 			role,
@@ -55,9 +28,10 @@ const generateTask = async (req, res) => {
 
 		const newTask = new Task({
 			taskObject,
-			postedBy: req.user.id, // User ID from the token
+			postedBy: req.user.id,
 			deadline,
 		});
+
 		await newTask.save();
 
 		// Add task reference to employer's profile
@@ -66,9 +40,45 @@ const generateTask = async (req, res) => {
 			{ $push: { postedTasks: newTask._id } }
 		);
 
-		res.status(201).json({ task: newTask });
+		return res.status(201).json({ task: newTask });
 	} catch (error) {
-		res.status(500).json({ message: "Task did not created", error });
+		console.log(error.message);
+		return res.status(500).json({ message: "Task did not created", error });
+	}
+};
+
+// Get a specific task by ID
+const getTaskById = async (req, res) => {
+	const taskId = req.params.id;
+	try {
+		const task = await Task.findById(taskId).populate({
+			path: "submissions", // Access the submissions field inside Task
+			populate: { path: "submittedBy" }, // Populate candidate info
+		});
+		if (!task) return res.status(404).json({ msg: "Task not found" });
+
+		return res.json(task);
+	} catch (error) {
+		console.error(error.message);
+		return res.status(500).send("Server error");
+	}
+};
+
+// Fetch tasks posted by the logged-in employer
+const getEmployerTasks = async (req, res) => {
+	const userId = req.params.userId;
+	try {
+		const tasks = await Task.find({ postedBy: userId })
+			.populate("postedBy")
+			.populate({
+				path: "submissions", // Access the submissions field inside Task
+				select: "solution submittedBy", // Select solution and candidate from Submission
+				populate: { path: "submittedBy" }, // Populate candidate info
+			});
+		return res.json(tasks);
+	} catch (error) {
+		console.error(error.message);
+		return res.status(500).send("Server error");
 	}
 };
 
@@ -79,40 +89,26 @@ const getAllTasks = async (req, res) => {
 			path: "submissions", // Access the submissions field inside Task
 			populate: { path: "submittedBy" }, // Populate candidate info
 		}); // Optionally populate the employer info
-		res.json(tasks);
+		return res.json(tasks);
 	} catch (error) {
 		console.error(error.message);
-		res.status(500).send("Server error");
-	}
-};
-
-// Get a specific task by ID
-const getTaskById = async (req, res) => {
-	try {
-		const task = await Task.findById(req.params.id).populate({
-			path: "submissions", // Access the submissions field inside Task
-			populate: { path: "submittedBy" }, // Populate candidate info
-		});
-		if (!task) return res.status(404).json({ msg: "Task not found" });
-
-		res.json(task);
-	} catch (error) {
-		console.error(error.message);
-		res.status(500).send("Server error");
+		return res.status(500).send("Server error");
 	}
 };
 
 // Update a task (Employer only)
 const updateTask = async (req, res) => {
+	const taskId = req.params.id;
+	const userId = req.user.id;
 	try {
-		const task = await Task.findById(req.params.id);
+		const task = await Task.findById(taskId);
 
 		if (!task) {
 			return res.status(404).json({ msg: "Task not found" });
 		}
 
 		// Ensure the user is the owner of the task
-		if (task.postedBy.toString() !== req.user.id) {
+		if (task.postedBy.toString() !== userId) {
 			return res.status(401).json({ msg: "User not authorized" });
 		}
 
@@ -124,24 +120,27 @@ const updateTask = async (req, res) => {
 
 		await task.save();
 
-		res.json(task);
+		return res.json(task);
 	} catch (error) {
 		console.error(error.message);
-		res.status(500).send("Server error");
+		return res.status(500).send("Server error");
 	}
 };
 
 // Delete a task (Employer only)
 const deleteTask = async (req, res) => {
+	const taskId = req.params.id;
+	const userId = req.user.id;
+	const userRole = req.user.role;
 	try {
-		const task = await Task.findById(req.params.id);
+		const task = await Task.findById(taskId);
 
 		if (!task) {
 			return res.status(404).json({ msg: "Task not found" });
 		}
 
 		// Ensure the user is the owner of the task
-		if (task.postedBy.toString() !== req.user.id) {
+		if (task.postedBy.toString() !== userId && userRole !== "admin") {
 			return res.status(401).json({ msg: "User not authorized" });
 		}
 
@@ -174,29 +173,12 @@ const deleteTask = async (req, res) => {
 	}
 };
 
-// Fetch tasks posted by the logged-in employer
-const getMyTasks = async (req, res) => {
-	try {
-		const tasks = await Task.find({ postedBy: req.user.id })
-			.populate("postedBy")
-			.populate({
-				path: "submissions", // Access the submissions field inside Task
-				select: "solution submittedBy", // Select solution and candidate from Submission
-				populate: { path: "submittedBy" }, // Populate candidate info
-			});
-		res.json(tasks);
-	} catch (error) {
-		console.error(error.message);
-		res.status(500).send("Server error");
-	}
-};
-
 module.exports = {
 	createTask,
 	getAllTasks,
 	getTaskById,
 	updateTask,
 	deleteTask,
-	getMyTasks,
+	getEmployerTasks,
 	generateTask,
 };

@@ -1,14 +1,23 @@
 const CandidateProfile = require("../models/CandidateProfile");
 const EmployerProfile = require("../models/EmployerProfile");
+const User = require("../models/User");
 
-// @desc    Get current user's profile
-// @route   GET /api/profile/:role
+// @desc    Get user's profile
+// @route   GET /api/profile/:userId
 // @access  Private
 const getProfile = async (req, res) => {
-	const role = req.params.role;
+	const userId = req.params.userId;
 	try {
+		const user = await User.findById(userId);
+
+		if (!user) {
+			return res.status(404).json({ msg: "User not found" });
+		}
+
+		const role = user.role;
+		let profile;
 		if (role === "candidate") {
-			const profile = await CandidateProfile.findOne({ user: req.user.id })
+			profile = await CandidateProfile.findOne({ user: userId })
 				.populate("user")
 				.populate({
 					path: "submissions",
@@ -17,15 +26,8 @@ const getProfile = async (req, res) => {
 						populate: { path: "postedBy" },
 					},
 				});
-
-			if (!profile) {
-				return res
-					.status(400)
-					.json({ msg: "There is no profile for this user" });
-			}
-			res.json(profile);
 		} else if (role === "employer") {
-			const profile = await EmployerProfile.findOne({ user: req.user.id })
+			profile = await EmployerProfile.findOne({ user: userId })
 				.populate("user")
 				.populate({
 					path: "postedTasks",
@@ -34,60 +36,37 @@ const getProfile = async (req, res) => {
 						populate: { path: "submittedBy" },
 					},
 				});
-
-			if (!profile) {
-				return res
-					.status(400)
-					.json({ msg: "There is no profile for this user" });
-			}
-			res.json(profile);
 		} else {
 			return res.status(400).json({ msg: "Invalid role" });
 		}
+
+		if (!profile) {
+			return res.status(400).json({ msg: "There is no profile for this user" });
+		}
+		return res.json(profile);
 	} catch (err) {
 		console.error(err.message);
 		res.status(500).send("Server error");
 	}
 };
 
-// @desc    Create user profile
-// @route   POST /api/profile
-// @access  Private
-const createProfile = async (req, res) => {
-	const role = req.body.userRole;
+// @desc    Get user profiles
+// @route   GET /api/profile/fetchAll
+// @access  Private, role based
+const getAllProfiles = async (req, res) => {
 	try {
-		if (role === "candidate") {
-			const { phone, profilePicture, resume } = req.body.formData;
+		// Fetch all candidate profiles and employer profiles
+		const candidateProfiles = await CandidateProfile.find().populate("user");
+		const employerProfiles = await EmployerProfile.find().populate("user");
 
-			const profileFields = {
-				user: req.user.id,
-				phone,
-				profilePicture,
-				resume,
-			};
+		// Combine both types of profiles in one array
+		const profiles = [...candidateProfiles, ...employerProfiles];
 
-			let profile = new CandidateProfile(profileFields);
-			await profile.save();
-			res.json(profile);
-		} else if (role === "employer") {
-			const { phone, companyName, companyLogo } = req.body.formData;
-
-			const profileFields = {
-				user: req.user.id,
-				phone,
-				companyName,
-				companyLogo,
-			};
-
-			let profile = new EmployerProfile(profileFields);
-			await profile.save();
-			res.json(profile);
-		} else {
-			return res.status(400).json({ msg: "Invalid role" });
-		}
-	} catch (err) {
-		console.error(err.message);
-		res.status(500).send("Server error");
+		// Return the combined profiles
+		return res.json(profiles);
+	} catch (error) {
+		console.error("Error fetching profiles:", error.message);
+		return res.status(500).json({ msg: "Server error" });
 	}
 };
 
@@ -95,61 +74,92 @@ const createProfile = async (req, res) => {
 // @route   PUT /api/profile
 // @access  Private
 const updateProfile = async (req, res) => {
-	const role = req.body.userRole; // Use the userRole passed from the frontend
+	const userId = req.params.userId;
 	try {
+		const user = await User.findById(userId);
+		const role = user.role; // Use the userRole passed from the frontend
+		let profile;
 		if (role === "candidate") {
 			const { phone, profilePicture, resume } = req.body;
 
 			const profileFields = {
-				user: req.user.id,
+				user: userId,
 				phone,
 				profilePicture,
 				resume,
 			};
 
-			let profile = await CandidateProfile.findOneAndUpdate(
-				{ user: req.user.id },
+			profile = await CandidateProfile.findOneAndUpdate(
+				{ user: userId },
 				{ $set: profileFields },
 				{ new: true }
 			);
-
-			if (!profile) {
-				return res.status(400).json({ msg: "Profile not found" });
-			}
-
-			return res.json(profile);
 		} else if (role === "employer") {
 			const { phone, companyName, companyLogo } = req.body;
 
 			const profileFields = {
-				user: req.user.id,
+				user: userId,
 				phone,
 				companyName,
 				companyLogo,
 			};
 
-			let profile = await EmployerProfile.findOneAndUpdate(
-				{ user: req.user.id },
+			profile = await EmployerProfile.findOneAndUpdate(
+				{ user: userId },
 				{ $set: profileFields },
 				{ new: true }
 			);
-
-			if (!profile) {
-				return res.status(400).json({ msg: "Profile not found" });
-			}
-
-			return res.json(profile);
 		} else {
 			return res.status(400).json({ msg: "Invalid role" });
 		}
+
+		if (!profile) {
+			return res.status(400).json({ msg: "Profile not found" });
+		}
+
+		return res.json(profile);
 	} catch (err) {
 		console.error(err.message);
 		res.status(500).send("Server error");
 	}
 };
 
+// @desc    Delete user profile
+// @route   DELETE /api/profile
+// @access  Private
+const deleteProfile = async (req, res) => {
+	const userId = req.params.userId;
+	try {
+		// Find the user by ID
+		const user = await User.findById(userId);
+
+		if (!user) {
+			return res.status(404).json({ msg: "User not found" });
+		}
+
+		// Check the role and delete the corresponding profile
+		const role = user.role;
+		if (role === "candidate") {
+			await CandidateProfile.findOneAndDelete({ user: userId });
+		} else if (role === "employer") {
+			await EmployerProfile.findOneAndDelete({ user: userId });
+		}
+
+		// Delete the user itself
+		await User.findOneAndDelete({ _id: userId });
+
+		// Return success message
+		res.json({ msg: "User and profile deleted successfully" });
+	} catch (error) {
+		// Log and send error response
+		console.error("Error deleting profile:", error.message);
+		res.status(500).json({ msg: "Server error" });
+	}
+};
+
 module.exports = {
 	getProfile,
-	createProfile,
+	deleteProfile,
 	updateProfile,
+	getAllProfiles,
 };

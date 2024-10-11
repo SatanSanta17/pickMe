@@ -7,7 +7,7 @@ const {
 	getTaskById,
 	updateTask,
 	deleteTask,
-	getMyTasks,
+	getEmployerTasks,
 	generateTask,
 } = require("../controllers/taskController");
 
@@ -20,6 +20,17 @@ router.post(
 	generateTask
 );
 
+// Get a specific task by ID
+router.get("/fetch/:id", authMiddleware, getTaskById);
+
+// Fetch tasks posted by the logged-in employer
+router.get(
+	"/fetchUserTasks/:userId",
+	authMiddleware,
+	roleMiddleware("employer"),
+	getEmployerTasks
+);
+
 // Get all tasks (for candidates)
 router.get(
 	"/fetchAll",
@@ -27,9 +38,6 @@ router.get(
 	roleMiddleware("candidate"),
 	getAllTasks
 );
-
-// Get a specific task by ID
-router.get("/fetch/:id", authMiddleware, getTaskById);
 
 // Update a task (only for employers who posted the task)
 router.put(
@@ -44,15 +52,8 @@ router.delete(
 	"/delete/:id",
 	authMiddleware,
 	roleMiddleware("employer"),
+	roleMiddleware("admin"),
 	deleteTask
-);
-
-// Fetch tasks posted by the logged-in employer
-router.get(
-	"/fetchMyTasks",
-	authMiddleware,
-	roleMiddleware("employer"),
-	getMyTasks
 );
 
 module.exports = router;
