@@ -6,7 +6,7 @@ const User = require("../models/User");
 // @route   GET /api/profile/:userId
 // @access  Private
 const getProfile = async (req, res) => {
-	const userId = req.params.userId;
+	const userId = req.params.id;
 	try {
 		const user = await User.findById(userId);
 
@@ -74,7 +74,7 @@ const getAllProfiles = async (req, res) => {
 // @route   PUT /api/profile
 // @access  Private
 const updateProfile = async (req, res) => {
-	const userId = req.params.userId;
+	const userId = req.params.id;
 	try {
 		const user = await User.findById(userId);
 		const role = user.role; // Use the userRole passed from the frontend
@@ -128,7 +128,7 @@ const updateProfile = async (req, res) => {
 // @route   DELETE /api/profile
 // @access  Private
 const deleteProfile = async (req, res) => {
-	const userId = req.params.userId;
+	const userId = req.params.id;
 	try {
 		// Find the user by ID
 		const user = await User.findById(userId);

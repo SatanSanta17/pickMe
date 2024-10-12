@@ -1,9 +1,11 @@
-// src/pages/Register.js
 import React, { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth"; // Import the auth hook
 
 const Register = () => {
+	const auth = useAuth();
+
+	const { register } = auth; // Use the register method from the auth hook
 	const [formData, setFormData] = useState({
 		name: "",
 		email: "",
@@ -22,21 +24,14 @@ const Register = () => {
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
-		try {
-			const response = await axios.post(
-				"http://localhost:5000/api/auth/register",
-				formData
-			);
-			console.log("REGISTER RESPONSE: ", response);
-			const { token } = response.data;
-			console.log("TOKEN:", token);
-			localStorage.setItem("token", token); // Save token to local storage
-			// setIsAuthenticated(true); // Set auth status to true
-			navigate("/profile-completion"); // Redirect to login after successful registration
-		} catch (error) {
-			console.error("Error registering user: ", error.response.data);
-		}
+		await register(name, email, password, role); // Call the register method
+		navigate("/profile-completion"); // Redirect after successful registration
 	};
+
+	// Check if auth is valid before destructuring
+	if (!auth) {
+		return <div>Loading...</div>; // Or handle null case
+	}
 
 	return (
 		<div className="d-flex justify-content-center align-items-center mt-5">

@@ -1,5 +1,6 @@
 const express = require("express");
 const auth = require("../middleware/authMiddleware");
+const roleMiddleware = require("../middleware/roleMiddleware");
 const {
 	submitSolution,
 	getSubmissionById,

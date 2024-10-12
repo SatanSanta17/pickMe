@@ -19,7 +19,7 @@ const viewSubmissionsByCreator = async (creatorId) => {
 	return response.data;
 };
 
-const viewSubmissionsForTask = async (taskId) => {
+const viewSubmissionsByTask = async (taskId) => {
 	const response = await httpService.get(
 		`${API_URL}/fetchTaskSubmissions/${taskId}`
 	);
@@ -50,7 +50,7 @@ export default {
 	createSubmission,
 	viewSubmission,
 	viewSubmissionsByCreator,
-	viewSubmissionsForTask,
+	viewSubmissionsByTask,
 	viewAllSubmissions,
 	updateSubmission,
 	deleteSubmission,

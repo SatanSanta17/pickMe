@@ -1,6 +1,6 @@
-import authService from "./authService";
-import userService from "./userService";
-import taskService from "./taskService";
-import submissionService from "./submissionService";
+import authService from "./Auth";
+import profileService from "./Profile";
+import taskService from "./Task";
+import submissionService from "./Submission";
 
-export { authService, userService, taskService, submissionService };
+export { authService, profileService, taskService, submissionService };

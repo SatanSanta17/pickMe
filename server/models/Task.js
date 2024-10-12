@@ -10,6 +10,10 @@ const TaskSchema = new mongoose.Schema({
 		ref: "User",
 		required: true, // Reference to the user who posted the task
 	},
+	companyName: {
+		type: String,
+		required: true,
+	},
 	deadline: {
 		type: Date,
 		required: true, // The deadline for task completion

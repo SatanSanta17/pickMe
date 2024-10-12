@@ -17,6 +17,7 @@ const register = async (userData) => {
 
 const logout = () => {
 	localStorage.removeItem("token"); // Clear token on logout
+	localStorage.removeItem("role"); // Clear token on logout
 };
 
 export default { login, register, logout };

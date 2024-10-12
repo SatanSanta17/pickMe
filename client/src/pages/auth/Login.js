@@ -1,15 +1,17 @@
 // src/pages/Login.js
 import React, { useState } from "react";
-import axios from "axios";
+import { useAuth } from "../../hooks/useAuth"; // Import the useAuth hook
 import { useNavigate } from "react-router-dom";
 
-const Login = ({ setIsAuthenticated }) => {
+const Login = () => {
 	const [formData, setFormData] = useState({
 		email: "",
 		password: "",
 	});
 	const { email, password } = formData;
 	const navigate = useNavigate();
+
+	const { login } = useAuth(); // Use the login function from the auth hook
 
 	const handleChange = (e) => {
 		setFormData({
@@ -21,18 +23,10 @@ const Login = ({ setIsAuthenticated }) => {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		try {
-			const response = await axios.post(
-				"http://localhost:5000/api/auth/login",
-				formData
-			);
-			console.log("Login response: ", response);
-			const { token } = response.data;
-			console.log("TOKEN:", token);
-			localStorage.setItem("token", token); // Save token to local storage
-			setIsAuthenticated(true); // Set auth status to true
+			await login(email, password); // Call the login function
 			navigate("/"); // Navigate to home after successful login
 		} catch (error) {
-			console.error("Login error: ", error.response.data);
+			console.error("Login error: ", error.message); // Use error.message for better readability
 		}
 	};
 

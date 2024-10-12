@@ -14,6 +14,7 @@ const generateTask = async (req, res) => {
 		requiredSkills,
 		jobDescription,
 		deadline,
+		companyName,
 	} = req.body;
 	try {
 		const task = await generateContent(
@@ -29,6 +30,7 @@ const generateTask = async (req, res) => {
 		const newTask = new Task({
 			taskObject,
 			postedBy: req.user.id,
+			companyName,
 			deadline,
 		});
 
@@ -174,7 +176,6 @@ const deleteTask = async (req, res) => {
 };
 
 module.exports = {
-	createTask,
 	getAllTasks,
 	getTaskById,
 	updateTask,

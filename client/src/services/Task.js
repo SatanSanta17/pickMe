@@ -12,9 +12,9 @@ const fetchTask = async (taskId) => {
 	return response.data;
 };
 
-const fetchMyTasks = async (employerId) => {
+const fetchEmployerTasks = async (employerId) => {
 	const response = await httpService.get(
-		`${API_URL}//fetchTasks/${employerId}`
+		`${API_URL}/fetchUserTasks/${employerId}`
 	);
 	return response.data;
 };
@@ -43,5 +43,5 @@ export default {
 	fetchAllTasks,
 	updateTask,
 	deleteTask,
-	fetchMyTasks,
+	fetchEmployerTasks,
 };

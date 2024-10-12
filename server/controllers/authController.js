@@ -30,15 +30,15 @@ const register = async (req, res) => {
 		}
 
 		// Generate JWT
-		const payload = { user: { id: user.id, role: user.role } };
+		const payload = { user: { id: user._id, role: user.role } };
 		const token = jwt.sign(payload, jwtSecret, {
 			expiresIn: "1h",
 		});
 
-		res.json({ token });
+		return res.json({ token, user: { id: user._id, role: user.role } });
 	} catch (error) {
 		console.error(error.message);
-		res.status(500).send("Server error");
+		return res.status(500).send("Server error");
 	}
 };
 
@@ -53,15 +53,15 @@ const login = async (req, res) => {
 		if (!isMatch) return res.status(400).json({ msg: "wrong password" });
 
 		// Generate JWT
-		const payload = { user: { id: user.id, role: user.role } };
+		const payload = { user: { id: user._id, role: user.role } };
 		const token = jwt.sign(payload, jwtSecret, {
 			expiresIn: "1h",
 		});
 
-		res.json({ token });
+		return res.json({ token, user: { id: user._id, role: user.role } });
 	} catch (error) {
 		console.error(error.message);
-		res.status(500).send("Server error");
+		return res.status(500).send("Server error");
 	}
 };
 

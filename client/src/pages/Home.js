@@ -1,48 +1,43 @@
-import axios from "axios";
+// src/pages/Home.js
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { jwtDecode } from "jwt-decode"; // Import the jwt-decode library
+import { useAuth } from "../hooks/useAuth"; // Import the useAuth hook
+import { profileService } from "../services";
 
-const Home = ({ setIsAuthenticated }) => {
+const Home = () => {
 	const navigate = useNavigate();
-	const token = localStorage.getItem("token");
+	const { user, isAuthenticated, logout } = useAuth(); // Get user and auth state from useAuth
 	const [profile, setProfile] = useState(null); // State to hold user data
 
 	const fetchUserData = async () => {
-		// Make sure the token exists before making a request
-		if (token) {
-			console.log("TOKEN EXISTS");
-			const decodedToken = jwtDecode(token); // Decode the JWT token
-			// console.log(decodedToken.user);
-			const userRole = decodedToken.user.role;
+		if (isAuthenticated && user) {
+			console.log("TOKEN: ", localStorage.getItem("token"));
+			console.log("USER: ", JSON.stringify(user));
+			console.log("Fetching user data...");
 			try {
-				const response = await axios.get(
-					`http://localhost:5000/api/profile/fetch/${userRole}`,
-					{
-						headers: {
-							"Content-Type": "application/json",
-							"x-auth-token": token,
-						},
-					}
-				);
+				const response = await profileService.fetchProfile(user.id);
 				const profileData = response.data;
-				console.log("PROFILE FETCHED USING API");
+				console.log("Profile fetched using API");
 				setProfile(profileData);
 			} catch (err) {
 				console.error("Error fetching user data", err);
+				// Handle potential errors (e.g., token expiration or user not found)
+				if (err.response && err.response.status === 401) {
+					logout(); // Logout if unauthorized
+				}
 			}
 		} else {
-			console.log("TOKEN DOESNT EXIST");
+			console.log("User is not authenticated or no user found");
 		}
 	};
+
 	// Fetch user data when the component mounts
 	useEffect(() => {
 		fetchUserData();
-	}, []);
+	}, [isAuthenticated, user]); // Fetch user data when auth state or user changes
 
 	const handleLogout = () => {
-		localStorage.removeItem("token");
-		setIsAuthenticated(false);
+		logout(); // Use the logout method from useAuth
 		navigate("/login");
 	};
 
